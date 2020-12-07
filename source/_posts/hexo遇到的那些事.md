@@ -19,6 +19,14 @@ tags:
 ### 多电脑更新博客
 > git clone你的hexo分支代码到本地，然后分别执行 npm install hexo,npm install, npm install hexo-deployer-git命令 
 基本就OK了
+> 亲测有效： 创建新的空目录 hexo install, copy 如下必要文件进入 xxx.github.io目录下  
+> - ![hexo init](hexo_init.png)   
+> 
+> - 将老的文章相关文件copy到对应位置即可  
+> ![hexo resource](hexo_resource.png)  
+> 
+> - 最后 hexo g, hexo s 本地部署检查一下，没有问题就可以继续编辑或者提交了
+> 
 
 
 ### 主题无法推送远程Git
