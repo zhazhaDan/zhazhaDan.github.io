@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="TZE0rZyIqLl10trYu3BWBWa1Vmz6HFwhb2OcNEK4u-s" />
+     <link rel="shortcut icon" href= /2018/05/26/hexo遇到的那些事/user_header.jpg >
+    <title>
+        GDD的博客
+    </title>
+    <meta name="description" content= 嘿，欢迎访问！ >
+    <meta name="keywords" content= Blog >
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-home
+ replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            基于SDWebImage的多线程分析
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p><strong>1. 关于锁</strong>   </p>
+<a id="more"></a>   
+
+<p><strong>1.1. NSLock</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_lock.lock()   </span><br><span class="line">_lock.unlock()  </span><br></pre></td></tr></table></figure>
+
+<p><strong>2. synchronized</strong><br>synchronized 可以嵌套 内部有递归锁 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@synchronized(obj) &#123;&#125;   </span><br></pre></td></tr></table></figure>
+<p><strong>3. objc_sync</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@try &#123;  </span><br><span class="line">    objc_sync_enter(obj);</span><br><span class="line">&#125; @finally &#123;</span><br><span class="line">    objc_sync_exit(obj);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. ispatch_semaphore_t 作锁用  (SDImage)</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> dispatch_semaphore_create(1)</span><br><span class="line">#define LOCK(lock) dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVE&#96;R);</span><br><span class="line">#define UNLOCK(lock) dispatch_semaphore_signal(lock);</span><br></pre></td></tr></table></figure>
+
+
+<p>总之锁如果用不好，尽量避免使用：   </p>
+<ol>
+<li>消耗性能     </li>
+<li>有死锁的风险</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="http://yulingtianxia.com/blog/2015/11/01/More-than-you-want-to-know-about-synchronized/">参考文档1</a><br><a target="_blank" rel="noopener" href="https://satanwoo.github.io/2019/01/01/Synchronized/">参考文档2</a></p>
+<p><strong>2. 分析源码中的多线如何处理</strong></p>
+<ul>
+<li>‘SDWebImage’, ‘4.4.6’ 以下简称 SD   </li>
+<li>本篇剖析一下SD的多线程下载处理  </li>
+</ul>
+<p><strong>2.1 下载队列的线程安全</strong><br>NSOperation、NSOperationQueue 是基于 GCD 更高一层的封装，完全面向对象。但是比 GCD 更简单易用、代码可读性也更高。<br>NSOperationQueue控制并发和串行只需要设置maxConcurrentOperationCount<br>调度队列 更可控 （eg. SDWebImageDownloaderExecutionOrder）FIFO LIFO<br><img src="SDWebImage4.4.6_operation.png" alt="SDWebImage4.4.6_operation">   </p>
+<p>业务分析：Art的PDF以后如果还有需求感觉也可以参考SD的这个模式，控制并发数和下载速度更方便</p>
+<p><strong>2.2 内存缓存的线程安全(NSCache)</strong></p>
+<p>NSCache是线程安全的，在多线程操作中，不需要对Cache加锁。读取缓存的时候是在主线程中进行，由于使用NSCache进行存储，所以不需要担心单个value对象的线程安全。</p>
+<p><strong>2.3 磁盘缓存的线程安全(NSFileManager)</strong><br>所有磁盘读写在一个ioqueue内，保证串行(art类似)</p>
+<ul>
+<li>参考文档 </li>
+<li><ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5a9e57af6fb9a028df222555">NSOperation</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+        <hr class="fhr">
+        <div id="vcomments"></div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p><h4>Copyright © 2020 | Author: GDD | Theme By <a class="theme-author" target="_blank" rel="noopener" href="https://github.com/Xunzhuo/hexo-theme-coder" style="font-size:14px; color: #969696">Coder</a></h4>
+    
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv">Page Views: <span id="busuanzi_value_site_pv"></span></span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv">Unique Visitors: <span id="busuanzi_value_site_uv"></span></span>
+    
+    <label class="el-switch el-switch-blue el-switch-sm" style="vertical-align: sub;">
+        <input type="checkbox" name="switch" id="update_style">
+        <span class="el-switch-style"></span>
+    </label>
+
+    <!--         <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script> -->
+</p>
+</div>
+
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CQf8d0G29j9Y25lpvMMwTJxL-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="9pDFociYxWRnKWHxdds5YdyJ">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+color: #698fca;
+}
+.v .vlist .vcard .vhead .vsys {
+color: #3a3e4a;
+}
+.v .vlist .vcard .vh .vmeta .vat {
+color: #638fd5;
+}
+.v .vlist .vcard .vhead .vnick {
+color: #6ba1ff;
+}
+.v a {
+color: #8696b1;
+}
+.v .vlist .vcard .vhead .vnick:hover {
+color: #669bfc;
+}
+</style>
+    <script type="text/javascript" color="173,174,173" opacity='1' zIndex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+</body>
+</html>

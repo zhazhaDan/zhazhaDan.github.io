@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="TZE0rZyIqLl10trYu3BWBWa1Vmz6HFwhb2OcNEK4u-s" />
+     <link rel="shortcut icon" href= /2018/05/26/hexo遇到的那些事/user_header.jpg >
+    <title>
+        GDD的博客
+    </title>
+    <meta name="description" content= 嘿，欢迎访问！ >
+    <meta name="keywords" content= Blog >
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-home
+ replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            解析WebViewJavascriptBridge
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <blockquote>
+<p>集成方式 pod ‘WebViewJavascriptBridge’, ‘~&gt; 6.0’  </p>
+</blockquote>
+<blockquote>
+<p>文件中 import WebViewJavascriptBridge   </p>
+</blockquote>
+<blockquote>
+<p>初始化一个bridge  </p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private var bridge: WebViewJavascriptBridge!</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>注入JS以及调用JS</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">bridge &#x3D; WebViewJavascriptBridge.init(webV)</span><br><span class="line">bridge.registerHandler(&quot;testCallHandler&quot;) &#123; [weak self](data, callback) in</span><br><span class="line">    guard let self &#x3D; self else &#123; return &#125;</span><br><span class="line">    print(data)</span><br><span class="line">    callback?(&quot;Response from testCallHandler&quot;)</span><br><span class="line">&#125;&#x2F;&#x2F;注入</span><br><span class="line"></span><br><span class="line">self.bridge.callHandler(&quot;testJavascriptHandler&quot;, data: [&quot;foo&quot;: &quot;before ready&quot;]) &#x2F;&#x2F;调用，当然，提前js要往 WebViewJavascriptBridge 里注入相应代码</span><br></pre></td></tr></table></figure>
+<p>JS里一定要做的事情 </p>
+<ul>
+<li>往window添加一个src为<code>https://__bridge_loaded__</code>的iframe(非前端开发人员，不做详细探讨，总之为了和APP通信)<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function setupWebViewJavascriptBridge(callback) &#123;</span><br><span class="line">        if (window.WebViewJavascriptBridge) &#123; return callback(WebViewJavascriptBridge); &#125;</span><br><span class="line">        if (window.WVJBCallbacks) &#123; return window.WVJBCallbacks.push(callback); &#125;</span><br><span class="line">        window.WVJBCallbacks &#x3D; [callback];</span><br><span class="line">        var WVJBIframe &#x3D; document.createElement(&#39;iframe&#39;);</span><br><span class="line">        WVJBIframe.style.display &#x3D; &#39;none&#39;;</span><br><span class="line">        WVJBIframe.src &#x3D; &#39;https:&#x2F;&#x2F;__bridge_loaded__&#39;;</span><br><span class="line">        document.documentElement.appendChild(WVJBIframe);</span><br><span class="line">        setTimeout(function() &#123; document.documentElement.removeChild(WVJBIframe) &#125;, 0)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">setupWebViewJavascriptBridge(function(bridge) &#123;</span><br><span class="line">    var uniqueId &#x3D; 1</span><br><span class="line">    function log(message, data) &#123;</span><br><span class="line">        var log &#x3D; document.getElementById(&#39;log&#39;)</span><br><span class="line">        var el &#x3D; document.createElement(&#39;div&#39;)</span><br><span class="line">        el.className &#x3D; &#39;logLine&#39;</span><br><span class="line">        el.innerHTML &#x3D; uniqueId++ + &#39;. &#39; + message + &#39;:&lt;br&#x2F;&gt;&#39; + JSON.stringify(data)</span><br><span class="line">        if (log.children.length) &#123; log.insertBefore(el, log.children[0]) &#125;</span><br><span class="line">        else &#123; log.appendChild(el) &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    bridge.registerHandler(&#39;testJavascriptHandler&#39;, function(data, responseCallback) &#123;</span><br><span class="line">        log(&#39;ObjC called testJavascriptHandler with&#39;, data)</span><br><span class="line">        var responseData &#x3D; &#123; &#39;Javascript Says&#39;:&#39;Right back atcha!&#39; &#125;</span><br><span class="line">        log(&#39;JS responding with&#39;, responseData)</span><br><span class="line">        responseCallback(responseData)</span><br><span class="line">    &#125;)&#x2F;&#x2F;注册，以供app调用js</span><br><span class="line">    document.body.appendChild(document.createElement(&#39;br&#39;))</span><br><span class="line"></span><br><span class="line">    var callbackButton &#x3D; document.getElementById(&#39;buttons&#39;).appendChild(document.createElement(&#39;button&#39;))</span><br><span class="line">    callbackButton.innerHTML &#x3D; &#39;Fire testCallHandler&#39;</span><br><span class="line">    callbackButton.onclick &#x3D; function(e) &#123;</span><br><span class="line">        e.preventDefault()</span><br><span class="line">        log(&#39;JS calling handler &quot;testCallHandler&quot;&#39;)</span><br><span class="line">        bridge.callHandler(&#39;testCallHandler&#39;, &#123;&#39;foo&#39;: &#39;bar&#39;&#125;, function(response) &#123;</span><br><span class="line">            log(&#39;JS got response&#39;, response)</span><br><span class="line">        &#125;)&#x2F;&#x2F;js 调用app </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="WebViewJavascriptBridge-的工作流："><a href="#WebViewJavascriptBridge-的工作流：" class="headerlink" title="WebViewJavascriptBridge 的工作流："></a>WebViewJavascriptBridge 的工作流：</h3><ul>
+<li>JS 端加入 src 为 https://__bridge_loaded__ 的 iframe</li>
+<li>Native 端检测到 Request，检测如果是 __bridge_loaded__ 则通过当前的 WebView 组件注入 WebViewJavascriptBridge_JS 代码</li>
+<li>注入代码成功之后会加入一个 messagingIframe，其 src 为 https://<strong>wvjb_queue_message</strong></li>
+<li>之后不论是 Native 端还是 JS 端都可以通过 registerHandler 方法注册一个两端约定好的 HandlerName 的处理，也都可以通过 callHandler 方法通过约定好的 HandlerName 调用另一端的处理（两端处理消息的实现逻辑对称）</li>
+</ul>
+<p>上面有了一个整体的认知以及使用，使用已经足够了，如果感兴趣的话，继续往下看</p>
+<p><img src="bridge_folder.png" alt="bridge_folder"><br>看整个WebViewJavascriptBridge的文件内容，只有八个文件，看文件名也很清晰，咱们来分析一下，每个class都干了什么 </p>
+<blockquote>
+<h3 id="WebViewJavascriptBridge"><a href="#WebViewJavascriptBridge" class="headerlink" title="WebViewJavascriptBridge"></a>WebViewJavascriptBridge</h3><p>判断WebView的类型，并通过不同的类型进行分发。针对UIWebView和WebView做的一层封装，主要从来执行JS代码，以及实现UIWebView和WebView的代理方法，并通过拦截URL来通知WebViewJavaScriptBridgeBase做的相应操作<br><img src="WebViewJavascriptBridge.png" alt="WebViewJavascriptBridge">   </p>
+</blockquote>
+<p>这个类是对外暴露的，看一下接口   </p>
+<ul>
+<li>初始化bridge时，传入我们使用的webview,针对iOS app这里支持UIWebView和WKWebView</li>
+<li>log 这俩接口就不说了</li>
+<li>setWebViewDelegate 这里因为会拿走webView的delegate，所以会再扔回去，如果有需要就实现一下，非必选，看自己业务需要</li>
+<li>registerHandler/removeHandler/callHandler 相关五个接口，这里就是精华所在了，JS和APP的交互调用都在这里了, 具体实现我们往下看</li>
+</ul>
+<blockquote>
+<h3 id="WebViewJavascriptBridgeBase"><a href="#WebViewJavascriptBridgeBase" class="headerlink" title="WebViewJavascriptBridgeBase"></a>WebViewJavascriptBridgeBase</h3><p>bridge的核心类，用来初始化以及消息的处理</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@property (weak, nonatomic) id &lt;WebViewJavascriptBridgeBaseDelegate&gt; delegate;</span><br><span class="line">@property (strong, nonatomic) NSMutableArray* startupMessageQueue;&#x2F;&#x2F;存 bridge.callHandler的函数，预存app调用 js的方法，等html加载完成注入对应的js之后，调用函数</span><br><span class="line">@property (strong, nonatomic) NSMutableDictionary* responseCallbacks;&#x2F;&#x2F;回调</span><br><span class="line">@property (strong, nonatomic) NSMutableDictionary* messageHandlers;&#x2F;&#x2F;注册事件</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@protocol WebViewJavascriptBridgeBaseDelegate &lt;NSObject&gt;</span><br><span class="line">- (NSString*) _evaluateJavascript:(NSString*)javascriptCommand;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+<blockquote>
+<h3 id="WKWebViewJavascriptBridge"><a href="#WKWebViewJavascriptBridge" class="headerlink" title="WKWebViewJavascriptBridge"></a>WKWebViewJavascriptBridge</h3><p>主要是针对WKWebView做的一些封装，主要也是执行JS代码和实现WKWebView的代理方法的。同上面这个类类似</p>
+</blockquote>
+<blockquote>
+<h3 id="WebViewJavascriptBridge-js"><a href="#WebViewJavascriptBridge-js" class="headerlink" title="WebViewJavascriptBridge_js"></a>WebViewJavascriptBridge_js</h3><p>里面主要写了一些JS的方法，JS端与Native”互动“的JS端的方法基 本上都在这个里面  JS通过WebViewJavascriptBridge._fetchQueue()转发不同的message data 和 callback回去，最终实现交互。</p>
+</blockquote>
+<p><img src="js-app.png" alt="js-app"> </p>
+<p>以上就是此次研究这个库的内容，加上前篇所讲，总结这三个JS交互，第二种是目前我们app中所使用的，但是用原生的方法，使用起来很麻烦，也不便于管理， 第三种库使用简洁，兼容性高，推荐使用</p>
+
+    </div>
+
+    
+        <hr class="fhr">
+        <div id="vcomments"></div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p><h4>Copyright © 2020 | Author: GDD | Theme By <a class="theme-author" target="_blank" rel="noopener" href="https://github.com/Xunzhuo/hexo-theme-coder" style="font-size:14px; color: #969696">Coder</a></h4>
+    
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv">Page Views: <span id="busuanzi_value_site_pv"></span></span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv">Unique Visitors: <span id="busuanzi_value_site_uv"></span></span>
+    
+    <label class="el-switch el-switch-blue el-switch-sm" style="vertical-align: sub;">
+        <input type="checkbox" name="switch" id="update_style">
+        <span class="el-switch-style"></span>
+    </label>
+
+    <!--         <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script> -->
+</p>
+</div>
+
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CQf8d0G29j9Y25lpvMMwTJxL-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="9pDFociYxWRnKWHxdds5YdyJ">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+color: #698fca;
+}
+.v .vlist .vcard .vhead .vsys {
+color: #3a3e4a;
+}
+.v .vlist .vcard .vh .vmeta .vat {
+color: #638fd5;
+}
+.v .vlist .vcard .vhead .vnick {
+color: #6ba1ff;
+}
+.v a {
+color: #8696b1;
+}
+.v .vlist .vcard .vhead .vnick:hover {
+color: #669bfc;
+}
+</style>
+    <script type="text/javascript" color="173,174,173" opacity='1' zIndex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+</body>
+</html>

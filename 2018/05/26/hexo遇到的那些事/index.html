@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="TZE0rZyIqLl10trYu3BWBWa1Vmz6HFwhb2OcNEK4u-s" />
+     <link rel="shortcut icon" href= /2018/05/26/hexo遇到的那些事/user_header.jpg >
+    <title>
+        GDD的博客
+    </title>
+    <meta name="description" content= 嘿，欢迎访问！ >
+    <meta name="keywords" content= Blog >
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-home
+ replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            hexo遇到的那些事
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p>上一篇讲解了hexo搭建GitHub个人博客，我们建了两个分支</p>
+<blockquote>
+<p>master 分支用来存放我们生成的静态页面文件<br>hexo 分支用来存放我们配置的git和hexo文件，包括主题等<br>但是在实际使用，我们经常会遇到各种情况，文章中我们总结一下常会遇见，或者说笔者遇见的问题</p>
+</blockquote>
+<a id="more"></a>
+
+
+<h3 id="多电脑更新博客"><a href="#多电脑更新博客" class="headerlink" title="多电脑更新博客"></a>多电脑更新博客</h3><blockquote>
+<p>git clone你的hexo分支代码到本地，然后分别执行 npm install hexo,npm install, npm install hexo-deployer-git命令<br>基本就OK了<br>亲测有效： 创建新的空目录 hexo install, copy 如下必要文件进入 xxx.github.io目录下  </p>
+<ul>
+<li><p><img src="hexo_init.png" alt="hexo init">   </p>
+</li>
+<li><p>将老的文章相关文件copy到对应位置即可<br><img src="hexo_resource.png" alt="hexo resource">  </p>
+</li>
+<li><p>最后 hexo g, hexo s 本地部署检查一下，没有问题就可以继续编辑或者提交了</p>
+</li>
+</ul>
+</blockquote>
+<h3 id="主题无法推送远程Git"><a href="#主题无法推送远程Git" class="headerlink" title="主题无法推送远程Git"></a>主题无法推送远程Git</h3><p>查看远程仓库里主题目录，你可能会看到这样的图片<br><img src="theme_default.png" alt="1"><br>这种情况可能导致的结果就是，你换一台电脑，需要重新clone一下主题，否则在本地无法生效、调试。<br>更加糟糕的情况是，如果你在主题里面做了很多修改，那么，恭喜你！<br>所以这个时候，你就要确保把你本地的theme推送到远程分支上。<br>以下操作有效(next 是你需要推送的主题名)</p>
+<pre><code>git rm -rf --cached themes/yilia
+git add theme/next/*
+git commit -m &quot;&quot;
+git push</code></pre>
+<p>之后再查看就是这样的(我用的是yilia主题)<br><img src="theme_normal.png" alt="2"></p>
+<h3 id="首页文章列表里，文章内容全部会展示怎么办"><a href="#首页文章列表里，文章内容全部会展示怎么办" class="headerlink" title="首页文章列表里，文章内容全部会展示怎么办"></a>首页文章列表里，文章内容全部会展示怎么办</h3><p>笔者用的是yilia主题，默认是把所有文章内容都展示出来，这可不合适，以我对待工作的热情，这么下去，不是坑大了嘛。<br>所以查了一下，一个小技巧<br>在你觉得先要展示在首页的文字后面添加下面这句话就哦了。<br><img src="more.png" alt="3"></p>
+<h3 id="图片等资源无法保存"><a href="#图片等资源无法保存" class="headerlink" title="图片等资源无法保存"></a>图片等资源无法保存</h3><p>可能是笔者没有研究透彻hexo的各种使用，一开始把资源文件都放到了public下，殊不知，每次hexo g的时候，都会根据source/下的md文件等重新编译，替换到public里面的资源，所以直接在public下添加资源的方法是不可行的，如需，如下可尝试</p>
+<blockquote>
+<p>根目录下编辑  _config.yml<br>修改这个地方(默认是false)  post_asset_folder: true<br>这么修改之后，hexo new 方法除了会生成md文件外，还会生成同名文件夹，引用的时候，直接用文件名引用即可。</p>
+</blockquote>
+<h3 id="如何关联自己的域名"><a href="#如何关联自己的域名" class="headerlink" title="如何关联自己的域名"></a>如何关联自己的域名</h3><p>由于自己没有任何前端的了解，对域名，DNS解析也不是很懂的样子，所以只能简单说下步骤了。<br>我是去阿里云上花了29大洋买的一个域名<a target="_blank" rel="noopener" href="http://www.viris.cn/">viris.cn</a>(这里真的不是打广告，只是顺便宣传一下，啊哈哈~)<br>然后去阿里云的<a target="_blank" rel="noopener" href="https://dns.console.aliyun.com/?accounttraceid=b3eb9fcd-18bd-4829-8c6e-a4b64998b1f1#/dns/setting/viris.cn">管理平台</a>云解析 -&gt; 解析设置 -&gt; 添加记录  作如下配置<br><img src="aliyun_dns.png" alt="dns配置"></p>
+<ul>
+<li>分别添加 记录类型A的时候添加你的github.io的IP地址，这里不知道的话 打开的你的teminal 然后ping一下你的GitHub主页地址,得到的IP输入到记录值里</li>
+<li>添加 CNAME 记录类型， 主机记录填你想设置的前缀，我用的是wwww和@，记录纸就写你的username.github.io</li>
+</ul>
+<p>最后，去你的博客目录下，找到source目录，创建一个文件名为CNAME的文件，必须大写，没有后缀，里面写上你的域名，比如我买的域名是viris.cn 就写上viris.cn</p>
+<p>完美！<br>有其他问题，一边探索，一边补充哦，欢迎跟我交流沟通哦~</p>
+
+    </div>
+
+    
+        <hr class="fhr">
+        <div id="vcomments"></div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p><h4>Copyright © 2020 | Author: GDD | Theme By <a class="theme-author" target="_blank" rel="noopener" href="https://github.com/Xunzhuo/hexo-theme-coder" style="font-size:14px; color: #969696">Coder</a></h4>
+    
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv">Page Views: <span id="busuanzi_value_site_pv"></span></span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv">Unique Visitors: <span id="busuanzi_value_site_uv"></span></span>
+    
+    <label class="el-switch el-switch-blue el-switch-sm" style="vertical-align: sub;">
+        <input type="checkbox" name="switch" id="update_style">
+        <span class="el-switch-style"></span>
+    </label>
+
+    <!--         <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script> -->
+</p>
+</div>
+
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CQf8d0G29j9Y25lpvMMwTJxL-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="9pDFociYxWRnKWHxdds5YdyJ">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+color: #698fca;
+}
+.v .vlist .vcard .vhead .vsys {
+color: #3a3e4a;
+}
+.v .vlist .vcard .vh .vmeta .vat {
+color: #638fd5;
+}
+.v .vlist .vcard .vhead .vnick {
+color: #6ba1ff;
+}
+.v a {
+color: #8696b1;
+}
+.v .vlist .vcard .vhead .vnick:hover {
+color: #669bfc;
+}
+</style>
+    <script type="text/javascript" color="173,174,173" opacity='1' zIndex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+</body>
+</html>

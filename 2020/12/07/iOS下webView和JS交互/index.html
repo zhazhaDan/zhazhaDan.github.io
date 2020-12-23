@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="TZE0rZyIqLl10trYu3BWBWa1Vmz6HFwhb2OcNEK4u-s" />
+     <link rel="shortcut icon" href= /2018/05/26/hexo遇到的那些事/user_header.jpg >
+    <title>
+        GDD的博客
+    </title>
+    <meta name="description" content= 嘿，欢迎访问！ >
+    <meta name="keywords" content= Blog >
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-home
+ replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            iOS下webView和JS交互
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><ul>
+<li>h5和native 交互代码冗余 不清晰 多人开发时效率地下</li>
+</ul>
+<h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><ul>
+<li>为了寻找更高效的编程开发方式，节省代码量，以及多人开发的效率   <a id="more"></a>
+<h1 id="过程探索"><a href="#过程探索" class="headerlink" title="过程探索"></a>过程探索</h1><h2 id="JavaScriptCore"><a href="#JavaScriptCore" class="headerlink" title="JavaScriptCore"></a>JavaScriptCore</h2><blockquote>
+<ul>
+<li>官方解释<br>The JavaScriptCore Framework provides the ability to evaluate JavaScript programs from within Swift, Objective-C, and C-based apps. You can use also use JavaScriptCore to insert custom objects to the JavaScript environment.<br>JavaScriptCore框架提供了从Swift、Objective-C和基于c的应用程序中评估JavaScript程序的能力。您还可以使用JavaScriptCore将定制对象插入到JavaScript环境中。<br>苹果爸爸在iOS7.0以后推出的官方库，目前看起来是适用于UIWebView(官方以不推荐使用) </li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<p>下面说一下使用方法</p>
+<blockquote>
+<p>关键词： JSContext  JSValue  JSExport  </p>
+</blockquote>
+<ul>
+<li>JSExport<br>继承并申明你需要到protocol - 注入到JS里到function </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@objc protocol SwiftJavaScriptProtocol: JSExport &#123;</span><br><span class="line">    func test(_ value: String?)</span><br><span class="line">    &#x2F;&#x2F; js调用App的功能后 App再调用js函数执行回调</span><br><span class="line">    func callHandler(handleFuncName: String)</span><br><span class="line"></span><br><span class="line">    var stringCallback: (@convention(block) (String) -&gt; String)? &#123; get set &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>申明一个继承于NSObjectt的class, 并实现你的protocol  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">class SwiftJavaScriptModel: NSObject, SwiftJavaScriptProtocol  &#123;</span><br><span class="line">    weak var jsContext: JSContext? &#x2F;&#x2F;js 的执行环境，调用js 或者注入js</span><br><span class="line">    var stringCallback: (@convention(block) (String) -&gt; String)? &#x2F;&#x2F; swift里想要让JS能够调用我们的clourse，一定要用这个关键字</span><br><span class="line"></span><br><span class="line">    func test(_ value: String?) &#123;</span><br><span class="line">        print(&quot;js call test(_ value: \(value ?? &quot;&quot;))&quot;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    func callHandler(handleFuncName: String) &#123;</span><br><span class="line">        let jsHandlerFunc &#x3D; self.jsContext?.objectForKeyedSubscript(&quot;\(handleFuncName)&quot;)</span><br><span class="line">        let dict &#x3D; [&quot;name&quot;: &quot;sean&quot;, &quot;age&quot;: 18] as [String : Any]</span><br><span class="line">        jsHandlerFunc?.call(withArguments: [dict])</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    override init() &#123;</span><br><span class="line">        super.init()</span><br><span class="line">        self.stringCallback &#x3D; &#123;</span><br><span class="line">            [weak self] value in</span><br><span class="line">            print(&quot;SwiftJavaScriptModel stringCallback \(value)&quot;)</span><br><span class="line">            return value.appending(&quot;this is append string&quot;)</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最后，通过UIWebView的特性，获取JSContext,并将我们的function注入到上下文 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">extension JSCoreVC: UIWebViewDelegate &#123;</span><br><span class="line">    func webViewDidFinishLoad(_ webView: UIWebView) &#123;</span><br><span class="line">        if let jsContext &#x3D; webView.value(forKeyPath:&quot;documentView.webView.mainFrame.javaScriptContext&quot;) as? JSContext &#123;</span><br><span class="line">            let model &#x3D; SwiftJavaScriptModel()</span><br><span class="line">            model.jsContext &#x3D; jsContext</span><br><span class="line">            jsContext.setObject(model, forKeyedSubscript: (&quot;WebViewJavascriptBridge&quot; as NSString)) &#x2F;&#x2F;注入</span><br><span class="line">            jsContext.evaluateScript(self.htmlContent)</span><br><span class="line">            jsContext.exceptionHandler &#x3D; &#123;</span><br><span class="line">                [weak self] (context, exception) in</span><br><span class="line">                guard let self &#x3D; self else &#123; return &#125;</span><br><span class="line">                print(&quot;exception：&quot;, exception)</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>WebViewJavascriptBridge</code> 注意，这里注入的名字即是JS调用的名字，JS调用我们的函数和自己的使用方式一样,举例如下   </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;div class&#x3D;&quot;btn-block&quot; onclick&#x3D;&quot;WebViewJavascriptBridge.test(&#39;this is toast&#39;)&quot;&gt;</span><br><span class="line">    test</span><br><span class="line">&lt;&#x2F;div&gt;</span><br><span class="line">&lt;div class&#x3D;&quot;btn-block&quot; onclick&#x3D;&quot;appStringCallbackFunc(&#39;this is toast&#39;)&quot;&gt;</span><br><span class="line">    stringCallback</span><br><span class="line">&lt;&#x2F;div&gt;</span><br><span class="line">&lt;script type&#x3D;&quot;text&#x2F;javascript&quot;&gt;</span><br><span class="line">    function appStringCallbackFunc(arg) &#123;</span><br><span class="line">        let value &#x3D; WebViewJavascriptBridge.stringCallback(&#39;this is toast&#39;)</span><br><span class="line">        document.getElementById(&#39;js-content&#39;).innerHTML &#x3D; &quot;App调用js回调函数啦， 返回 -&gt;&quot; + value;</span><br><span class="line">    &#125;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+<p>看起来很方便吧，app -&gt; JS 也很方便    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">let context &#x3D; JSContext()</span><br><span class="line">let _ &#x3D; context?.evaluateScript(&quot;var triple &#x3D; (value) &#x3D;&gt; value + 3&quot;) &#x2F;&#x2F;注入</span><br><span class="line">let returnV &#x3D; context?.evaluateScript(&quot;triple(3)&quot;) &#x2F;&#x2F; 调用</span><br><span class="line">print(&quot;__testValueInContext --- returnValue &#x3D; \(returnV?.toNumber())&quot;)</span><br><span class="line">        </span><br></pre></td></tr></table></figure>
+
+
+<h2 id="WKWebView"><a href="#WKWebView" class="headerlink" title="WKWebView"></a>WKWebView</h2><blockquote>
+<ul>
+<li>官方解释<br>You can make POST requests with httpBody content in a WKWebView.<br>After creating a new WKWebView object using the init(frame:configuration:) method, you need to load the web content. Use the loadHTMLString(<em>:baseURL:) method to begin loading local HTML files or the load(</em>:) method to begin loading web content. Use the stopLoading() method to stop loading, and the isLoading property to find out if a web view is in the process of loading. Set the delegate property to an object conforming to the WKUIDelegate protocol to track the loading of web content. See Listing 1 for an example of creating a WKWebView programmatically.<br>你可以在WKWebView中用httpBody内容发出POST请求。<br>在使用init(frame:configuration:)方法创建一个新的WKWebView对象之后，您需要加载web内容。使用loadHTMLString(<em>:baseURL:)方法开始加载本地HTML文件，或使用load(</em>:)方法开始加载web内容。使用stopLoading()方法停止加载，使用isLoading属性查明web view是否在加载过程中。将委托属性设置为符合WKUIDelegate协议的对象，以跟踪web内容的加载。清单1给出了以编程方式创建WKWebView的示例。</li>
+</ul>
+</blockquote>
+<p>WKWebView关键词  </p>
+<blockquote>
+<p>WKUIDelegate  WKNavigationDelegate WKScriptMessageHandler</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*</span><br><span class="line">     实现原理：</span><br><span class="line">     1、JS与iOS约定好xdart协议，用作JS在调用iOS时url的scheme；</span><br><span class="line">     2、JS拿到的url：(xdart:&#x2F;&#x2F;lot_detail?id&#x3D;123)；</span><br><span class="line">     3、iOS的WKWebView在请求跳转前会调用-webView:decidePolicyForNavigationAction:decisionHandler:方法来确认是否允许跳转；</span><br><span class="line">     4、iOS在此方法内截取xdart协议获取JS传过来的数据，执行内部schema跳转逻辑</span><br><span class="line">     5、通过decisionHandler(.cancel)可以设置不允许此请求跳转 decisionHandler一定要调用</span><br><span class="line">     *&#x2F;</span><br><span class="line">    &#x2F;&#x2F;! WKWeView在每次加载请求前会调用此方法来确认是否进行请求跳转</span><br><span class="line">    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -&gt; Void) &#123;</span><br><span class="line">        guard let url &#x3D; navigationAction.request.url else &#123;return&#125;</span><br><span class="line">        guard let scheme &#x3D; url.scheme else &#123;return&#125;</span><br><span class="line"></span><br><span class="line">        if scheme &#x3D;&#x3D; &quot;xdart&quot; &#123;</span><br><span class="line">            &#x2F;&#x2F; THSchemeManager.handleScheme(url.absoluteString)</span><br><span class="line">        &#125;</span><br><span class="line">        decisionHandler(.allow)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>WKUIDelegate 基于JS系统的几个内部方法 实现一下方法要调用对应的completionHandler，否则崩溃</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -&gt; Void) &#123;</span><br><span class="line">        &#x2F;&#x2F; call toast</span><br><span class="line">        completionHandler()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -&gt; Void) &#123;</span><br><span class="line">        &#x2F;&#x2F; call alert</span><br><span class="line">        completionHandler(true)</span><br><span class="line">&#125;</span><br><span class="line">func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -&gt; Void) &#123;</span><br><span class="line">        &#x2F;&#x2F; call input</span><br><span class="line">        completionHandler(&quot;this is a message&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>WKScriptMessageHandler 重点来了，这是苹果爸爸推荐使用的JS交互</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">let content &#x3D; WKUserContentController()</span><br><span class="line">content.add(self, name: &quot;artproFunc&quot;) &#x2F;&#x2F;此方法会造成循环引用，注意时机释放</span><br><span class="line">let config &#x3D; WKWebViewConfiguration()</span><br><span class="line">config.userContentController &#x3D; content</span><br><span class="line">wkwebV &#x3D; WKWebView.init(frame: self.view.bounds, configuration: config)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ul>
+<li>这里往content里注入的是JS调用APP的函数<br>JS通过window.webkit.messageHandlers.artproFunc.postMessage()给artproFunc发送消息<br>我们的解析在此方法里 </li>
+</ul>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) &#123;</span><br><span class="line">        if message.name !&#x3D; self.applicationName &#123; return &#125;</span><br><span class="line">        if let body &#x3D; message.body as? [String: Any],</span><br><span class="line">           let method &#x3D; body[&quot;method&quot;] as? String &#123;</span><br><span class="line">            let aSel &#x3D; NSSelectorFromString(method)</span><br><span class="line">            if !self.canPerformAction(aSel, withSender: nil) &#123;</span><br><span class="line">                return</span><br><span class="line">            &#125;</span><br><span class="line">            let para &#x3D; body[&quot;parameter&quot;]</span><br><span class="line">            let callback &#x3D; body[&quot;callback&quot;]</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>以artpro为例，我们是将 artproFunc当作了一个通道，所有的function都走message.body分发出来，所以会有switch case 解析 body中的method，然后再进行不同的方法分发。</p>
+<blockquote>
+<p>缺点</p>
+<ul>
+<li>代码冗余</li>
+<li>字符串分发，容易出错</li>
+<li>函数格式各式各样，多人开发，他人不好接手<br><img src="artpro_userContent.png" alt="artpro现状"></li>
+</ul>
+</blockquote>
+<h2 id="WebViewJavascriptBridge"><a href="#WebViewJavascriptBridge" class="headerlink" title="WebViewJavascriptBridge"></a>WebViewJavascriptBridge</h2><p>最近研究JS和iOS native交互，偶然发现的库发现github上用的人也不少,感觉还不错的样子，就研究了下使用方法   </p>
+<blockquote>
+<p><img src="WebViewJavascriptBridge_star.png" alt="WebViewJavascriptBridge_star"></p>
+</blockquote>
+<p>看起来很简单的样子 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">bridge &#x3D; WebViewJavascriptBridge.init(webV)</span><br><span class="line">&#x2F;&#x2F; js call app</span><br><span class="line">bridge.registerHandler(&quot;testCallHandler&quot;) &#123; [weak self](data, callback) in</span><br><span class="line">    guard let self &#x3D; self else &#123; return &#125;</span><br><span class="line">    callback?(&quot;Response from testCallHandler&quot;)</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; app call js</span><br><span class="line">self.bridge.callHandler(&quot;testJavascriptHandler&quot;, data: [&quot;foo&quot;: &quot;before ready&quot;])</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>WebViewJavascriptBridge 原理将在下篇文章中剖析<br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903855189164040">参考文档1</a></p>
+</blockquote>
+
+    </div>
+
+    
+        <hr class="fhr">
+        <div id="vcomments"></div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p><h4>Copyright © 2020 | Author: GDD | Theme By <a class="theme-author" target="_blank" rel="noopener" href="https://github.com/Xunzhuo/hexo-theme-coder" style="font-size:14px; color: #969696">Coder</a></h4>
+    
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv">Page Views: <span id="busuanzi_value_site_pv"></span></span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv">Unique Visitors: <span id="busuanzi_value_site_uv"></span></span>
+    
+    <label class="el-switch el-switch-blue el-switch-sm" style="vertical-align: sub;">
+        <input type="checkbox" name="switch" id="update_style">
+        <span class="el-switch-style"></span>
+    </label>
+
+    <!--         <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script> -->
+</p>
+</div>
+
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CQf8d0G29j9Y25lpvMMwTJxL-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="9pDFociYxWRnKWHxdds5YdyJ">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+color: #698fca;
+}
+.v .vlist .vcard .vhead .vsys {
+color: #3a3e4a;
+}
+.v .vlist .vcard .vh .vmeta .vat {
+color: #638fd5;
+}
+.v .vlist .vcard .vhead .vnick {
+color: #6ba1ff;
+}
+.v a {
+color: #8696b1;
+}
+.v .vlist .vcard .vhead .vnick:hover {
+color: #669bfc;
+}
+</style>
+    <script type="text/javascript" color="173,174,173" opacity='1' zIndex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+</body>
+</html>
