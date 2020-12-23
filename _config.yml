@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Viris的博客
+title: GDD的博客
 subtitle: 好好生活、天天吃饭
 description: 爱哭爱笑，爱吵爱闹
 keywords: 单纯、天真、热情、傻缺、二逼
-author: Viris
+author: GDD
 email: 650974501@qq.com
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -71,7 +71,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: yilia
+theme: Coder
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
