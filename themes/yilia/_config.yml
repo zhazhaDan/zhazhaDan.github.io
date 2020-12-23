@@ -131,3 +131,15 @@ aboutme: 二逼老青年
         <br>办法总比问题多</br>
         <br>努力的人运气都不会太差</br>
         <br>办法总比问题多</br>
+
+valine:
+  enable: false
+  appid: CQf8d0G29j9Y25lpvMMwTJxL-gzGzoHsz
+  appkey: 9pDFociYxWRnKWHxdds5YdyJ
+  notify: false
+  verify: false
+  placeholder: Just go go
+  avatar: retro
+  guest_info: nick,mail,link
+  pageSize: 10
+  visitor: false
