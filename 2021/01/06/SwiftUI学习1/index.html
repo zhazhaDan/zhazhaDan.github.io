@@ -6,18 +6,26 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://zhazhaDan.github.io">
-  <title>Tag: 锁 | GDD的博客</title>
+  <title>SwiftUI学习1 | GDD的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="爱哭爱笑，爱吵爱闹">
-<meta property="og:type" content="website">
-<meta property="og:title" content="GDD的博客">
-<meta property="og:url" content="https://zhazhadan.github.io/tags/%E9%94%81/index.html">
+  <meta name="description" content="难点 页面跳转  开新页面   配合 NavigationLink 跳转  1234567891011121314NavigationLink(destination: BookDetailView(book: account)) &amp;#123;    Image(systemName: account.cover ?? &quot;&quot;)    VStack(alignment: .lea">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SwiftUI学习1">
+<meta property="og:url" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/index.html">
 <meta property="og:site_name" content="GDD的博客">
-<meta property="og:description" content="爱哭爱笑，爱吵爱闹">
+<meta property="og:description" content="难点 页面跳转  开新页面   配合 NavigationLink 跳转  1234567891011121314NavigationLink(destination: BookDetailView(book: account)) &amp;#123;    Image(systemName: account.cover ?? &quot;&quot;)    VStack(alignment: .lea">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1_API.png">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1_02_API.png">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1_03_API.png">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1.1_01.gif">
+<meta property="article:published_time" content="2021-01-06T11:49:58.000Z">
+<meta property="article:modified_time" content="2021-01-08T09:35:23.594Z">
 <meta property="article:author" content="GDD">
-<meta property="article:tag" content="单纯、天真、热情、傻缺、二逼">
+<meta property="article:tag" content="swiftUI">
+<meta property="article:tag" content="swift">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1_API.png">
   
     <link rel="alternative" href="/atom.xml" title="GDD的博客" type="application/atom+xml">
   
@@ -35,7 +43,7 @@
 
   
 
-</head>
+<meta name="generator" content="Hexo 5.2.0"></head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -157,76 +165,268 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-SwiftUI学习1" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2018" class="archive-year">2018</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" class="archive-article-date">
-  	<time datetime="2018-05-27T05:52:48.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2018-05-27</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/">@synchronized在OC和swift中的前世今生</a>
+    <h1 class="article-title" itemprop="name">
+      SwiftUI学习1
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/" class="archive-article-date">
+  	<time datetime="2021-01-06T11:49:58.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-01-06</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h3><ol>
+<li><p>页面跳转</p>
+<ul>
+<li><p>开新页面 </p>
+<blockquote>
+<p>配合 NavigationLink 跳转</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NavigationLink(destination: BookDetailView(book: account)) &#123;</span><br><span class="line">    Image(systemName: account.cover ?? &quot;&quot;)</span><br><span class="line">    VStack(alignment: .leading) &#123;</span><br><span class="line">        Text(account.name ?? &quot;&quot;)</span><br><span class="line">        HStack &#123;</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;收入 %.2f&quot;, account.income))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.secondary)</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;支出 %.2f&quot;, account.expand))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.orange)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>事件跳转 及API使用 </p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Button.init(&quot;添加&quot;, action: &#123;</span><br><span class="line">    self.isAccountAddViewPresented &#x3D; true</span><br><span class="line">&#125;).fullScreenCover(isPresented: $isAccountAddViewPresented, onDismiss: &#123;</span><br><span class="line">    self.requestData()</span><br><span class="line">&#125;, content: &#123;</span><br><span class="line">    AccountBookAddView(isPresented: self.$isAccountAddViewPresented)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
+<li><p><img src="1.1_API.png" alt="API"></p>
+</li>
+<li><p><img src="1.1_02_API.png" alt="API"></p>
+</li>
+<li><p><img src="1.1_03_API.png" alt="API"></p>
+</li>
+<li><p>返回上一页</p>
+<blockquote>
+<p>利用 @State 和 @Binding配合使用</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">struct View1: View &#123;</span><br><span class="line">    @State private var isPresented: Bool &#x3D; false</span><br><span class="line">    var body: some View &#123;</span><br><span class="line">        Button.init(&quot;新页面&quot;, action: &#123;</span><br><span class="line">            self.isPresented &#x3D; true</span><br><span class="line">        &#125;).sheet(isPresented: $isPresented, onDismiss: &#123;</span><br><span class="line">        &#125;, content: &#123;</span><br><span class="line">            View2(isPresented: self.$isPresented)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">struct View2: View &#123;</span><br><span class="line">    @Binding var isPresented: Bool</span><br><span class="line">    var body: some View &#123;</span><br><span class="line">        Button.init(&quot;返回&quot;, action: &#123;</span><br><span class="line">            self.isPresented &#x3D; false</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="1.1.1_01.gif" alt="效果"></p>
+</li>
+</ul>
+</li>
+<li><p>数据存储</p>
+<ul>
+<li>coredata<blockquote>
+<p>接下来我们专门写一篇文章介绍</p>
+</blockquote>
+</li>
+<li>userDefault<blockquote>
+<p>和swift一样</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>生命周期</p>
+<ul>
+<li>init</li>
+<li>onAppear</li>
+<li>onDisappear</li>
+</ul>
+</li>
+<li><p>List动态数据绑定</p>
+</li>
+<li><p>数据流</p>
+<ul>
+<li>property</li>
+<li>@State</li>
+<li>@Binding</li>
+<li>@ObjectBinding</li>
+<li>@EnvironmentObject</li>
+<li>@Published<blockquote>
+<p>Property：当 View 所需要的属性只要求可读，则使用 Property。<br>@State： 当 View 所需要的属性只在当前 View 和它的 Child Views 中使用，并且在用户的操作过程中会发生变化，然后导致 View 需要作出改变，那么使用 @State。 因为只在当前 View 和它的 Child Views 中使用，跟外界无关，所以被 @State 标记的属性一般在定义时就有初始值。<br>@Binding：当 View 所需要的属性是从它的直接 Parent View 传入，在内部会对这个属性进行修改，并且修改后的值需要反馈给直接 Parent View，那么使用 @Binding。<br>@ObjectBinding：用于直接绑定外部的数据模型和 View。<br>@EnvironmentObject：Root View 通过 environmentObject() 把 BindableObject 注入到 View 层级中，其中的所有 Child Views 可以通过 @EnvironmentObject 来访问被注入的 BindableObject。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ol>
+<ol>
+<li>Combine(与SwiftUI一起推出的响应式变成框架的一个协议)<br>– 待续</li>
+</ol>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>谢谢你请我吃糖果<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/2018/05/26/hexo遇到的那些事/ali_pay.JPG">
+                      <span class="reward-type">支付宝</span>
+                    </div>
+                    
+                    
+                    <div class="reward-box-item">
+                      <img class="reward-img" src="/2018/05/26/hexo遇到的那些事/wechat_pay.JPG">
+                      <span class="reward-type">微信</span>
+                    </div>
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
 			 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">synchronized</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">swiftUI</a>
         		</li>
       		 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">Obective-C</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">Swift</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">iOS</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">锁</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">swift</a>
         		</li>
       		
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
   
   
-    </div></section>
+    <a href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">解析WebViewJavascriptBridge</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9A%BE%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">难点</span></a></li></ol>
+                    </div>
+                </span>
+            </div>
+        </div>
+        
+    </div>
+</aside>
+
+
+
+  
+  
   
 
-    
+  
+  <div id="SOHUCS" sid="SwiftUI学习1" ></div> 
+<script charset="utf-8" type="text/javascript" src="//changyan.sohu.com/upload/changyan.js" ></script>
+<script type="text/javascript">
+    window.changyan.api.config({
+        appid: "cytDIGzfB",
+        conf: "prod_1366361f06c8ab758a574af89d655260"
+    });
+</script>
+</script>
+  
+
+  
+
+  
 
 
           </div>
@@ -249,9 +449,9 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
-		isTag: true,
+		isTag: false,
 		isCategory: false,
 		open_in_new: false,
 		toc_hide_index: true,
