@@ -20,7 +20,7 @@
 <meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1_03_API.png">
 <meta property="og:image" content="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/1.1.1_01.gif">
 <meta property="article:published_time" content="2021-01-06T11:49:58.000Z">
-<meta property="article:modified_time" content="2021-01-08T09:35:23.594Z">
+<meta property="article:modified_time" content="2021-01-08T09:42:03.234Z">
 <meta property="article:author" content="GDD">
 <meta property="article:tag" content="swiftUI">
 <meta property="article:tag" content="swift">
@@ -43,7 +43,7 @@
 
   
 
-<meta name="generator" content="Hexo 5.2.0"></head>
+</head>
 
 <body>
   <div id="container" q-class="show:isCtnShow">
@@ -193,15 +193,17 @@
 <p>配合 NavigationLink 跳转</p>
 </blockquote>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NavigationLink(destination: BookDetailView(book: account)) &#123;</span><br><span class="line">    Image(systemName: account.cover ?? &quot;&quot;)</span><br><span class="line">    VStack(alignment: .leading) &#123;</span><br><span class="line">        Text(account.name ?? &quot;&quot;)</span><br><span class="line">        HStack &#123;</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;收入 %.2f&quot;, account.income))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.secondary)</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;支出 %.2f&quot;, account.expand))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.orange)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+
 <blockquote>
 <p>事件跳转 及API使用 </p>
 </blockquote>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Button.init(&quot;添加&quot;, action: &#123;</span><br><span class="line">    self.isAccountAddViewPresented &#x3D; true</span><br><span class="line">&#125;).fullScreenCover(isPresented: $isAccountAddViewPresented, onDismiss: &#123;</span><br><span class="line">    self.requestData()</span><br><span class="line">&#125;, content: &#123;</span><br><span class="line">    AccountBookAddView(isPresented: self.$isAccountAddViewPresented)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
-<li><p><img src="1.1_API.png" alt="API"></p>
+<li><p><img src="1.1_API.png" alt="API1"></p>
 </li>
-<li><p><img src="1.1_02_API.png" alt="API"></p>
+<li><p><img src="1.1_02_API.png" alt="API2"></p>
 </li>
-<li><p><img src="1.1_03_API.png" alt="API"></p>
+<li><p><img src="1.1_03_API.png" alt="API3"></p>
 </li>
 <li><p>返回上一页</p>
 <blockquote>
