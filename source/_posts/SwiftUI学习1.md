@@ -25,6 +25,8 @@ tags:
         }
     }
     ```
+    <!-- more -->
+
     > 事件跳转 及API使用 
     ```
     Button.init("添加", action: {
@@ -35,9 +37,9 @@ tags:
         AccountBookAddView(isPresented: self.$isAccountAddViewPresented)
     })
     ```
-   - ![API](1.1_API.png)
-   - ![API](1.1_02_API.png)
-   - ![API](1.1_03_API.png)
+   - ![API1](1.1_API.png)
+   - ![API2](1.1_02_API.png)
+   - ![API3](1.1_03_API.png)
   
    - 返回上一页
     > 利用 @State 和 @Binding配合使用
