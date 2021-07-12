@@ -1,21 +1,14 @@
-
 <!DOCTYPE html>
-<html lang="en">
-    
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="GDD的博客">
-    <title>基于SDWebImage的多线程分析 - GDD的博客</title>
-    <meta name="author" content="GDD">
-    
-        <meta name="keywords" content="单纯、天真、热情、傻缺、二逼,">
-    
-    
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"GDD","sameAs":["https://github.com/","http://stackoverflow.com/users","https://twitter.com/","https://facebook.com/","https://plus.google.com/","https://www.linkedin.com/profile/","mailto"]},"articleBody":"1. 关于锁   \n   \n\n1.1. NSLock\n12_lock.lock()   _lock.unlock()  \n\n2. synchronizedsynchronized 可以嵌套 内部有递归锁 \n1@synchronized(obj) &#123;&#125;   \n3. objc_sync\n12345@try &#123;      objc_sync_enter(obj);&#125; @finally &#123;    objc_sync_exit(obj);    &#125;\n\n4. ispatch_semaphore_t 作锁用  (SDImage)\n123 dispatch_semaphore_create(1)#define LOCK(lock) dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVE&#96;R);#define UNLOCK(lock) dispatch_semaphore_signal(lock);\n\n\n总之锁如果用不好，尽量避免使用：   \n\n消耗性能     \n有死锁的风险\n\n参考文档1参考文档2\n2. 分析源码中的多线如何处理\n\n‘SDWebImage’, ‘4.4.6’ 以下简称 SD   \n本篇剖析一下SD的多线程下载处理  \n\n2.1 下载队列的线程安全NSOperation、NSOperationQueue 是基于 GCD 更高一层的封装，完全面向对象。但是比 GCD 更简单易用、代码可读性也更高。NSOperationQueue控制并发和串行只需要设置maxConcurrentOperationCount调度队列 更可控 （eg. SDWebImageDownloaderExecutionOrder）FIFO LIFO   \n业务分析：Art的PDF以后如果还有需求感觉也可以参考SD的这个模式，控制并发数和下载速度更方便\n2.2 内存缓存的线程安全(NSCache)\nNSCache是线程安全的，在多线程操作中，不需要对Cache加锁。读取缓存的时候是在主线程中进行，由于使用NSCache进行存储，所以不需要担心单个value对象的线程安全。\n2.3 磁盘缓存的线程安全(NSFileManager)所有磁盘读写在一个ioqueue内，保证串行(art类似)\n\n参考文档 \n\nNSOperation\n\n\n\n","dateCreated":"2020-08-05T11:18:59+08:00","dateModified":"2020-12-23T16:04:29+08:00","datePublished":"2020-08-05T11:18:59+08:00","description":"1. 关于锁   ","headline":"基于SDWebImage的多线程分析","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"},"publisher":{"@type":"Organization","name":"GDD","sameAs":["https://github.com/","http://stackoverflow.com/users","https://twitter.com/","https://facebook.com/","https://plus.google.com/","https://www.linkedin.com/profile/","mailto"]},"url":"https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/","keywords":"SDWebImage, 多线程, 线程锁"}</script>
-    <meta name="description" content="1. 关于锁">
-<meta property="og:type" content="blog">
+  <meta charset="utf-8">
+  
+
+  
+  <title>基于SDWebImage的多线程分析 | GDD的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="1. 关于锁">
+<meta property="og:type" content="article">
 <meta property="og:title" content="基于SDWebImage的多线程分析">
 <meta property="og:url" content="https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="GDD的博客">
@@ -30,330 +23,77 @@
 <meta property="article:tag" content="线程锁">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/SDWebImage4.4.6_operation.png">
-    
-    
-        
-    
-    
-    
-    
-    
-    <!--STYLES-->
-    
-<link rel="stylesheet" href="/assets/css/all.css">
+  
+    <link rel="alternate" href="/atom.xml" title="GDD的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
-    
-<link rel="stylesheet" href="/assets/css/jquery.fancybox.css">
-
-    
-<link rel="stylesheet" href="/assets/css/thumbs.css">
-
-    
-<link rel="stylesheet" href="/assets/css/tranquilpeak.css">
-
-    <!--STYLES END-->
-    
-
-    
-
-    
-        
-    
 </head>
 
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a
-            class="header-title-link"
-            href="/"
-            aria-label=""
-        >
-            GDD的博客
-        </a>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">GDD的博客</a>
+      </h1>
+      
     </div>
-    
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
         
-            <a
-                class="header-right-picture "
-                href="#about"
-                aria-label="Open the link: /#about"
-            >
+          <a class="main-nav-link" href="/">Home</a>
         
+          <a class="main-nav-link" href="/archives">Archives</a>
         
-        </a>
-    
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zhazhaDan.github.io"></form>
+      </div>
+    </div>
+  </div>
 </header>
-
-            <!-- Define author's picture -->
-
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
+      <div class="outer">
+        <section id="main"><article id="post-基于SDWebImage的多线程分析" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" class="article-date">
+  <time datetime="2020-08-05T03:18:59.000Z" itemprop="datePublished">2020-08-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
         
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/"
-                            
-                            rel="noopener"
-                            title="Home"
-                        >
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/all-categories"
-                            
-                            rel="noopener"
-                            title="Categories"
-                        >
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Categories</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/all-tags"
-                            
-                            rel="noopener"
-                            title="Tags"
-                        >
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Tags</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/all-archives"
-                            
-                            rel="noopener"
-                            title="Archives"
-                        >
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Archives</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link open-algolia-search"
-                            href="#search"
-                            
-                            rel="noopener"
-                            title="Search"
-                        >
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Search</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="#about"
-                            
-                            rel="noopener"
-                            title="About"
-                        >
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="https://github.com/"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="GitHub"
-                        >
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="http://stackoverflow.com/users"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="Stack Overflow"
-                        >
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="https://twitter.com/"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="Twitter"
-                        >
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="https://facebook.com/"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="Facebook"
-                        >
-                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Facebook</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="https://plus.google.com/"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="Google +"
-                        >
-                        <i class="sidebar-button-icon fab fa-google-plus" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Google +</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="https://www.linkedin.com/profile/"
-                            
-                                target="_blank"
-                            
-                            rel="noopener"
-                            title="LinkedIn"
-                        >
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/mailto"
-                            
-                            rel="noopener"
-                            title="Mail"
-                        >
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a
-                            class="sidebar-button-link "
-                            href="/atom.xml"
-                            
-                            rel="noopener"
-                            title="RSS"
-                        >
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
+  
+    <h1 class="article-title" itemprop="name">
+      基于SDWebImage的多线程分析
+    </h1>
+  
 
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
+      </header>
     
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            基于SDWebImage的多线程分析
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2020-08-05T11:18:59+08:00">
-	
-		    Aug 05, 2020
-    	
-    </time>
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <p><strong>1. 关于锁</strong>   </p>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>1. 关于锁</strong>   </p>
 <a id="more"></a>   
 
 <p><strong>1.1. NSLock</strong></p>
@@ -392,333 +132,146 @@
 </li>
 </ul>
 
-            
-
-
-        </div>
+      
     </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">TAGGED IN</span><br/>
-                
-    <a class="tag tag--primary tag--small t-none-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a> <a class="tag tag--primary tag--small t-none-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a> <a class="tag tag--primary tag--small t-none-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a>
+    <footer class="article-footer">
+      <a data-url="https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" data-id="ckj15hfyr0008kuzicc9j3c4g" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li></ul>
 
-            </div>
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
         
+          iOS下webView和JS交互
         
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                <a
-                    class="post-action-btn btn btn--default tooltip--top"
-                    href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/"
-                    data-tooltip="iOS下webView和JS交互"
-                    aria-label="PREVIOUS: iOS下webView和JS交互"
-                >
-                    
-                        <i class="fa fa-angle-left" aria-hidden="true"></i>
-                        <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
-                    </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                <a
-                    class="post-action-btn btn btn--default tooltip--top"
-                    href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/"
-                    data-tooltip="深拷贝和浅拷贝"
-                    aria-label="NEXT: 深拷贝和浅拷贝"
-                >
-                    
-                        <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
-                        <i class="fa fa-angle-right" aria-hidden="true"></i>
-                    </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a
-                class="post-action-btn btn btn--default btn-open-shareoptions"
-                href="#btn-open-shareoptions"
-                aria-label="Share this post"
-            >
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Facebook"
-                    aria-label="Share on Facebook"
-                >
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://twitter.com/intent/tweet?text=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Twitter"
-                    aria-label="Share on Twitter"
-                >
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://plus.google.com/share?url=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Google+"
-                    aria-label="Share on Google+"
-                >
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Back to top">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
+      </div>
+    </a>
+  
+  
+    <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">深拷贝和浅拷贝</div>
+    </a>
+  
+</nav>
 
-
-        
-        
-            
-        
-    </div>
+  
 </article>
 
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2021 GDD. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                <a
-                    class="post-action-btn btn btn--default tooltip--top"
-                    href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/"
-                    data-tooltip="iOS下webView和JS交互"
-                    aria-label="PREVIOUS: iOS下webView和JS交互"
-                >
-                    
-                        <i class="fa fa-angle-left" aria-hidden="true"></i>
-                        <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
-                    </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                <a
-                    class="post-action-btn btn btn--default tooltip--top"
-                    href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/"
-                    data-tooltip="深拷贝和浅拷贝"
-                    aria-label="NEXT: 深拷贝和浅拷贝"
-                >
-                    
-                        <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
-                        <i class="fa fa-angle-right" aria-hidden="true"></i>
-                    </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a
-                class="post-action-btn btn btn--default btn-open-shareoptions"
-                href="#btn-open-shareoptions"
-                aria-label="Share this post"
-            >
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
+</section>
         
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Facebook"
-                    aria-label="Share on Facebook"
-                >
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://twitter.com/intent/tweet?text=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Twitter"
-                    aria-label="Share on Twitter"
-                >
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a
-                    class="post-action-btn btn btn--default"
-                    target="new" href="https://plus.google.com/share?url=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                    title="Share on Google+"
-                    aria-label="Share on Google+"
-                >
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Back to top">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a
-                        class="share-option-btn"
-                        target="new"
-                        href="https://www.facebook.com/sharer/sharer.php?u=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                        aria-label="Share on Facebook"
-                    >
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Share on Facebook</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a
-                        class="share-option-btn"
-                        target="new"
-                        href="https://twitter.com/intent/tweet?text=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                        aria-label="Share on Twitter"
-                    >
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a
-                        class="share-option-btn"
-                        target="new"
-                        href="https://plus.google.com/share?url=https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/"
-                        aria-label="Share on Google+"
-                    >
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <h4 id="about-card-name">GDD</h4>
-        
-            <div id="about-card-bio"><p>author.bio</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br/>
-                <p>author.job</p>
-
-            </div>
-        
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-
-<script src="/assets/js/jquery.js"></script>
-
-
-<script src="/assets/js/jquery.fancybox.js"></script>
-
-
-<script src="/assets/js/thumbs.js"></script>
-
-
-<script src="/assets/js/tranquilpeak.js"></script>
-
-<!--SCRIPTS END-->
-
-
+          <aside id="sidebar">
+  
     
 
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptBridge/" rel="tag">JavaScriptBridge</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptCore/" rel="tag">JavaScriptCore</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/atomic/" rel="tag">atomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js%E4%BA%A4%E4%BA%92/" rel="tag">js交互</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mac/" rel="tag">mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nonatomic/" rel="tag">nonatomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift/" rel="tag">swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift-OC/" rel="tag">swift/OC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swiftUI/" rel="tag">swiftUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/theme/" rel="tag">theme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wkwebview/" rel="tag">wkwebview</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/JS/" style="font-size: 10px;">JS</a> <a href="/tags/JavaScriptBridge/" style="font-size: 10px;">JavaScriptBridge</a> <a href="/tags/JavaScriptCore/" style="font-size: 10px;">JavaScriptCore</a> <a href="/tags/Obective-C/" style="font-size: 15px;">Obective-C</a> <a href="/tags/SDWebImage/" style="font-size: 10px;">SDWebImage</a> <a href="/tags/Swift/" style="font-size: 10px;">Swift</a> <a href="/tags/atomic/" style="font-size: 10px;">atomic</a> <a href="/tags/github-pages/" style="font-size: 15px;">github pages</a> <a href="/tags/hexo/" style="font-size: 15px;">hexo</a> <a href="/tags/iOS/" style="font-size: 20px;">iOS</a> <a href="/tags/js%E4%BA%A4%E4%BA%92/" style="font-size: 10px;">js交互</a> <a href="/tags/mac/" style="font-size: 15px;">mac</a> <a href="/tags/nonatomic/" style="font-size: 10px;">nonatomic</a> <a href="/tags/swift/" style="font-size: 10px;">swift</a> <a href="/tags/swift-OC/" style="font-size: 10px;">swift/OC</a> <a href="/tags/swiftUI/" style="font-size: 10px;">swiftUI</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/theme/" style="font-size: 10px;">theme</a> <a href="/tags/wkwebview/" style="font-size: 10px;">wkwebview</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" style="font-size: 10px;">线程锁</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/">SwiftUI学习1</a>
+          </li>
+        
+          <li>
+            <a href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/">解析WebViewJavascriptBridge</a>
+          </li>
+        
+          <li>
+            <a href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/">iOS下webView和JS交互</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/">基于SDWebImage的多线程分析</a>
+          </li>
+        
+          <li>
+            <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/">深拷贝和浅拷贝</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 GDD<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
 
 
 
-    </body>
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
 </html>
