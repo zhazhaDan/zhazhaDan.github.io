@@ -8,7 +8,11 @@ tags:
 > 面试基本必问的一个问题： block的本质
 下面我们就来探讨一下，block的本质到底是什么
 
-_*OC里我们申明一个block其实很简单： ``` void (^block)() = ^{}; ``` 但是想要知道block到底是怎么去实现的，怎么去捕获变量，如何调用的，这些，就需要去👀一下C代码了*_
+_*OC里我们申明一个block其实很简单： ``` void (^block)() = ^{}; ``` 但是想要知道block到底是怎么去实现的，怎么去捕获变量，如何调用的，这些，就需要去👀一下C++代码了*_
+
+
+
+<!-- more -->
 
 - #### ```xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m```
   
