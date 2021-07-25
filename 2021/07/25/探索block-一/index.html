@@ -5,18 +5,22 @@
   
 
   
-  <title>GDD的博客</title>
+  <title>探索block(一) | GDD的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="爱哭爱笑，爱吵爱闹">
-<meta property="og:type" content="website">
-<meta property="og:title" content="GDD的博客">
-<meta property="og:url" content="https://zhazhadan.github.io/index.html">
+  <meta name="description" content="背景 面试基本必问的一个问题： block的本质下面我们就来探讨一下，block的本质到底是什么  OC里我们申明一个block其实很简单： void (^block)() &#x3D; ^&amp;#123;&amp;#125;; 但是想要知道block到底是怎么去实现的，怎么去捕获变量，如何调用的，这些，就需要去👀一下C代码了  xcrun -sdk iphoneos clang -arch arm64 -rewri">
+<meta property="og:type" content="article">
+<meta property="og:title" content="探索block(一)">
+<meta property="og:url" content="https://zhazhadan.github.io/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/index.html">
 <meta property="og:site_name" content="GDD的博客">
-<meta property="og:description" content="爱哭爱笑，爱吵爱闹">
+<meta property="og:description" content="背景 面试基本必问的一个问题： block的本质下面我们就来探讨一下，block的本质到底是什么  OC里我们申明一个block其实很简单： void (^block)() &#x3D; ^&amp;#123;&amp;#125;; 但是想要知道block到底是怎么去实现的，怎么去捕获变量，如何调用的，这些，就需要去👀一下C代码了  xcrun -sdk iphoneos clang -arch arm64 -rewri">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/block_1.png">
+<meta property="article:published_time" content="2021-07-25T03:00:20.000Z">
+<meta property="article:modified_time" content="2021-07-25T05:48:01.831Z">
 <meta property="article:author" content="GDD">
-<meta property="article:tag" content="单纯、天真、热情、傻缺、二逼">
+<meta property="article:tag" content="block">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zhazhadan.github.io/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/block_1.png">
   
     <link rel="alternate" href="/atom.xml" title="GDD的博客" type="application/atom+xml">
   
@@ -29,7 +33,7 @@
   
 <link rel="stylesheet" href="/css/style.css">
 
-</head>
+<meta name="generator" content="Hexo 5.2.0"></head>
 
 <body>
   <div id="container">
@@ -65,9 +69,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-探索block-一" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-探索block-一" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/" class="article-date">
   <time datetime="2021-07-25T03:00:20.000Z" itemprop="datePublished">2021-07-25</time>
@@ -80,8 +82,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/">探索block(一)</a>
+    <h1 class="article-title" itemprop="name">
+      探索block(一)
     </h1>
   
 
@@ -158,431 +160,19 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-SwiftUI学习1" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/" class="article-date">
-  <time datetime="2021-01-06T11:49:58.000Z" itemprop="datePublished">2021-01-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/">SwiftUI学习1</a>
-    </h1>
+    <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">SwiftUI学习1</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h3><ol>
-<li><p>页面跳转</p>
-<ul>
-<li><p>开新页面 </p>
-<blockquote>
-<p>配合 NavigationLink 跳转</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NavigationLink(destination: BookDetailView(book: account)) &#123;</span><br><span class="line">    Image(systemName: account.cover ?? &quot;&quot;)</span><br><span class="line">    VStack(alignment: .leading) &#123;</span><br><span class="line">        Text(account.name ?? &quot;&quot;)</span><br><span class="line">        HStack &#123;</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;收入 %.2f&quot;, account.income))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.secondary)</span><br><span class="line">            Text(&quot;\(String.init(format: &quot;支出 %.2f&quot;, account.expand))&quot;)</span><br><span class="line">                            .font(.subheadline)</span><br><span class="line">                            .foregroundColor(.orange)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-        
-          <p class="article-more-link">
-            <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/" data-id="ckjo34bb10000ypzibstc0y56" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/swift/" rel="tag">swift</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/swiftUI/" rel="tag">swiftUI</a></li></ul>
-
-    </footer>
-  </div>
   
 </article>
-
-
-  
-    <article id="post-解析WebViewJavascriptBridge" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/" class="article-date">
-  <time datetime="2020-12-08T02:42:12.000Z" itemprop="datePublished">2020-12-08</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/">解析WebViewJavascriptBridge</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>集成方式 pod ‘WebViewJavascriptBridge’, ‘~&gt; 6.0’  </p>
-</blockquote>
-<blockquote>
-<p>文件中 import WebViewJavascriptBridge   </p>
-</blockquote>
-<blockquote>
-<p>初始化一个bridge  </p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private var bridge: WebViewJavascriptBridge!</span><br></pre></td></tr></table></figure>
-        
-          <p class="article-more-link">
-            <a href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/" data-id="ckj15hfyt000bkuzi5jn56u1h" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/swift-OC/" rel="tag">swift/OC</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-iOS下webView和JS交互" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/" class="article-date">
-  <time datetime="2020-12-07T05:03:16.000Z" itemprop="datePublished">2020-12-07</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/">iOS下webView和JS交互</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><ul>
-<li>h5和native 交互代码冗余 不清晰 多人开发时效率地下</li>
-</ul>
-<h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><ul>
-<li>为了寻找更高效的编程开发方式，节省代码量，以及多人开发的效率
-        
-          <p class="article-more-link">
-            <a href="/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2020/12/07/iOS%E4%B8%8BwebView%E5%92%8CJS%E4%BA%A4%E4%BA%92/" data-id="ckj15hfyo0004kuzia4fghtlj" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScriptBridge/" rel="tag">JavaScriptBridge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScriptCore/" rel="tag">JavaScriptCore</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/js%E4%BA%A4%E4%BA%92/" rel="tag">js交互</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/wkwebview/" rel="tag">wkwebview</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-基于SDWebImage的多线程分析" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" class="article-date">
-  <time datetime="2020-08-05T03:18:59.000Z" itemprop="datePublished">2020-08-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/">基于SDWebImage的多线程分析</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong>1. 关于锁</strong>   </p>
-        
-          <p class="article-more-link">
-            <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" data-id="ckj15hfyr0008kuzicc9j3c4g" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-深拷贝和浅拷贝" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/" class="article-date">
-  <time datetime="2018-06-01T07:57:12.000Z" itemprop="datePublished">2018-06-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/">深拷贝和浅拷贝</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="深拷贝和浅拷贝"><a href="#深拷贝和浅拷贝" class="headerlink" title="深拷贝和浅拷贝"></a>深拷贝和浅拷贝</h3><ul>
-<li>浅拷贝： 是指源对象和拷贝对用公用同一份内存，只是分配的指针地址不同，但是实际上指向的是同一快内存空间。而只要内存空间不变，一个对象的改动都会影响另一个对象。</li>
-<li>深拷贝：是指新的对象新开辟了一块内存空间，将源对象的内容拷贝过去了，这时候内存和地址都不相同，相当于独立的两个对象，互不影响   </li>
-</ul>
-        
-          <p class="article-more-link">
-            <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/" data-id="ckj15hfys000akuzi57w354dj" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-使用atomic一定是线程安全的吗" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/05/27/%E4%BD%BF%E7%94%A8atomic%E4%B8%80%E5%AE%9A%E6%98%AF%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%90%97/" class="article-date">
-  <time datetime="2018-05-27T10:39:31.000Z" itemprop="datePublished">2018-05-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/27/%E4%BD%BF%E7%94%A8atomic%E4%B8%80%E5%AE%9A%E6%98%AF%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%90%97/">使用atomic一定是线程安全的吗?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>一般当我们想要保证对象属性的线程安全的时候可以在定义属性的时候用 atomic 关键字来修饰，那么<br>这篇文章让我们来探讨一下atomic和nonatomic分别都替我们做了什么工作</p>
-        
-          <p class="article-more-link">
-            <a href="/2018/05/27/%E4%BD%BF%E7%94%A8atomic%E4%B8%80%E5%AE%9A%E6%98%AF%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%90%97/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/05/27/%E4%BD%BF%E7%94%A8atomic%E4%B8%80%E5%AE%9A%E6%98%AF%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84%E5%90%97/" data-id="ckj15hfyq0007kuzi050h6zph" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/atomic/" rel="tag">atomic</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nonatomic/" rel="tag">nonatomic</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-synchronized在OC和swift中的前世今生" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" class="article-date">
-  <time datetime="2018-05-27T05:52:48.000Z" itemprop="datePublished">2018-05-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/">@synchronized在OC和swift中的前世今生</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="什么是锁"><a href="#什么是锁" class="headerlink" title="什么是锁"></a>什么是锁</h4><p>当多个线程同时操作同一块资源或者说同一个对象的时候，可能会造成各种意想不到的情况(比如数据错乱、资源争夺、崩溃等)，而锁就是为了能够保证同一时刻只有一个线程在操作这个数据应运而生的。</p>
-        
-          <p class="article-more-link">
-            <a href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" data-id="ckj15hfyp0005kuzi4d4dhdwv" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-hexo遇到的那些事" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/05/26/hexo%E9%81%87%E5%88%B0%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" class="article-date">
-  <time datetime="2018-05-26T03:22:55.000Z" itemprop="datePublished">2018-05-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/26/hexo%E9%81%87%E5%88%B0%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">hexo遇到的那些事</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>上一篇讲解了hexo搭建GitHub个人博客，我们建了两个分支</p>
-<blockquote>
-<p>master 分支用来存放我们生成的静态页面文件<br>hexo 分支用来存放我们配置的git和hexo文件，包括主题等<br>但是在实际使用，我们经常会遇到各种情况，文章中我们总结一下常会遇见，或者说笔者遇见的问题</p>
-</blockquote>
-        
-          <p class="article-more-link">
-            <a href="/2018/05/26/hexo%E9%81%87%E5%88%B0%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/05/26/hexo%E9%81%87%E5%88%B0%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" data-id="ckj15hfyn0003kuzicje7ah8q" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mac/" rel="tag">mac</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/theme/" rel="tag">theme</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Mac下实现hexo搭建github个人博客" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/04/18/Mac%E4%B8%8B%E5%AE%9E%E7%8E%B0hexo%E6%90%AD%E5%BB%BAgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" class="article-date">
-  <time datetime="2018-04-18T15:07:02.000Z" itemprop="datePublished">2018-04-18</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/18/Mac%E4%B8%8B%E5%AE%9E%E7%8E%B0hexo%E6%90%AD%E5%BB%BAgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/">Mac下实现hexo搭建github个人博客</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>博主工作将近四年，仍是IT小白一个，仅此开始记录一下进阶之路吧。</p>
-<h1 id="常识普及"><a href="#常识普及" class="headerlink" title="常识普及"></a>常识普及</h1><ul>
-<li>Github提供了免费而强大的服务器，并且不限流量，这对于需求量不大，又希望能有点逼格的人来说简直就是福音(后悔现在才开始用)</li>
-<li>Github Pages可以被认为是用户编写的、托管在github上的静态网页。</li>
-<li>Hexo是帮你把Markdown文档转成静态网页的工具。
-        
-          <p class="article-more-link">
-            <a href="/2018/04/18/Mac%E4%B8%8B%E5%AE%9E%E7%8E%B0hexo%E6%90%AD%E5%BB%BAgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/04/18/Mac%E4%B8%8B%E5%AE%9E%E7%8E%B0hexo%E6%90%AD%E5%BB%BAgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" data-id="ckj15hfx90000kuzi1uc1fy84" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mac/" rel="tag">mac</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-
-
-  <nav id="page-nav">
-    
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
-  </nav>
 
 </section>
         
