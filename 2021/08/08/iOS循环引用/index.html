@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://zhazhadan.github.io/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/circle-1.png">
 <meta property="og:image" content="https://zhazhadan.github.io/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/circle-2.png">
 <meta property="article:published_time" content="2021-08-08T14:41:03.000Z">
-<meta property="article:modified_time" content="2021-08-09T15:46:10.874Z">
+<meta property="article:modified_time" content="2021-08-09T17:54:27.752Z">
 <meta property="article:author" content="GDD">
 <meta property="article:tag" content="block">
 <meta property="article:tag" content="循环引用">
@@ -37,7 +37,7 @@
   
 <link rel="stylesheet" href="/css/style.css">
 
-<meta name="generator" content="Hexo 5.2.0"></head>
+</head>
 
 <body>
   <div id="container">
@@ -109,7 +109,32 @@
 <a id="more"></a>
 
 <ul>
-<li><h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3></li>
+<li><h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3><blockquote>
+<p> <a href="%E6%8E%A2%E7%B4%A2block-%E4%B8%80.md">探索block-一</a></p>
+</blockquote>
+<blockquote>
+<p>这篇里我们有讲到block的源码及本质，下面我们基于此快速了解一下为什么block会产生循环引用。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>OC<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Persion * p &#x3D; [[Persion alloc] init];</span><br><span class="line">p.name &#x3D; @&quot;GDD&quot;;</span><br><span class="line">Persion * p2 &#x3D; [[Persion alloc] init];</span><br><span class="line">p2.name &#x3D; @&quot;🐶&quot;;</span><br><span class="line">p.printBlock &#x3D; ^(NSString * _Nonnull name) &#123;</span><br><span class="line">    NSLog(@&quot;%@-%@&quot;, p.name, p2.name);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><br>C++</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">struct __main_block_impl_0 &#123;</span><br><span class="line">struct __block_impl impl;</span><br><span class="line">struct __main_block_desc_0* Desc;</span><br><span class="line">Persion *__strong p;</span><br><span class="line">Persion *__strong p2;</span><br><span class="line">__main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, Persion *__strong _p, Persion *__strong _p2, int flags&#x3D;0) : p(_p), p2(_p2) &#123;</span><br><span class="line">    impl.isa &#x3D; &amp;_NSConcreteStackBlock;</span><br><span class="line">    impl.Flags &#x3D; flags;</span><br><span class="line">    impl.FuncPtr &#x3D; fp;</span><br><span class="line">    Desc &#x3D; desc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看到在block里其实是做了强引用的：<br>p -&gt; printBlock  printBlock -&gt; p.name<br>那么解这种循环引用其实也很简单了:  </p>
+<ul>
+<li> __unsafe_unretained:不会产生强引用,不安全,指向的对象销毁时,指针存储的地址不变</li>
+<li>__weak:不会产生强引用,指向的对象销毁时,会自动让指针置为nil</li>
+<li>__block能用解决block内部想修改外部的局部变量的问题,也能解决循环引用的问题</li>
+</ul>
+</blockquote>
+<p>这里需要着重说一下block，我们先看一下，如果我用__block申明，编译器会做什么 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">struct __Block_byref_weakP_0 &#123;</span><br><span class="line">  void *__isa;</span><br><span class="line">__Block_byref_weakP_0 *__forwarding;</span><br><span class="line"> int __flags;</span><br><span class="line"> int __size;</span><br><span class="line"> void (*__Block_byref_id_object_copy)(void*, void*);</span><br><span class="line"> void (*__Block_byref_id_object_dispose)(void*);</span><br><span class="line"> typeof (p) weakP;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">struct __main_block_impl_0 &#123;</span><br><span class="line">  struct __block_impl impl;</span><br><span class="line">  struct __main_block_desc_0* Desc;</span><br><span class="line">  Persion *__strong p2;</span><br><span class="line">  __Block_byref_weakP_0 *weakP; &#x2F;&#x2F; by ref</span><br><span class="line">  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, Persion *__strong _p2, __Block_byref_weakP_0 *_weakP, int flags&#x3D;0) : p2(_p2), weakP(_weakP-&gt;__forwarding) &#123;</span><br><span class="line">    impl.isa &#x3D; &amp;_NSConcreteStackBlock;</span><br><span class="line">    impl.Flags &#x3D; flags;</span><br><span class="line">    impl.FuncPtr &#x3D; fp;</span><br><span class="line">    Desc &#x3D; desc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>编译器会对__block修饰的 值/对象 包装成一个对象，__forwarding就指向的是这个对象自己的地址，如此一来，即可以通过__forwarding指针来寻找并做修改了。<br>需要注意的是，ARC下当使用__block来解循环引用的时候，实际上需要手动将__block的引用指向nil<br>这其实是一个三角引用<br>p -&gt; block -&gt; __block_p -&gt; p</p>
+<ul>
 <li><h3 id="delegate"><a href="#delegate" class="headerlink" title="delegate"></a>delegate</h3></li>
 <li><h3 id="NSTimer-CADisplyLink"><a href="#NSTimer-CADisplyLink" class="headerlink" title="NSTimer/CADisplyLink"></a>NSTimer/CADisplyLink</h3></li>
 <li><ul>
@@ -160,6 +185,13 @@
 <li><p>FLEX</p>
 </li>
 </ul>
+<blockquote>
+<p>参考文档 </p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6943242244497358885">关于block的循环引用</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/df4988adb95e">iOS循环引用/内存泄漏检测工具</a></li>
+</ul>
+</blockquote>
 
       
     </div>
