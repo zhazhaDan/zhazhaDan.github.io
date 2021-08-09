@@ -22,7 +22,77 @@ tags:
 
 <!-- more -->
 
-- ### block
+- ### block 
+  >  [探索block-一](探索block-一.md)
+
+  > 这篇里我们有讲到block的源码及本质，下面我们基于此快速了解一下为什么block会产生循环引用。
+
+> OC
+  ``` 
+    Persion * p = [[Persion alloc] init];
+    p.name = @"GDD";
+    Persion * p2 = [[Persion alloc] init];
+    p2.name = @"🐶";
+    p.printBlock = ^(NSString * _Nonnull name) {
+        NSLog(@"%@-%@", p.name, p2.name);
+    };
+  ```
+> C++
+```
+struct __main_block_impl_0 {
+struct __block_impl impl;
+struct __main_block_desc_0* Desc;
+Persion *__strong p;
+Persion *__strong p2;
+__main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, Persion *__strong _p, Persion *__strong _p2, int flags=0) : p(_p), p2(_p2) {
+    impl.isa = &_NSConcreteStackBlock;
+    impl.Flags = flags;
+    impl.FuncPtr = fp;
+    Desc = desc;
+  }
+};
+```
+> 可以看到在block里其实是做了强引用的：   
+p -> printBlock  printBlock -> p.name
+那么解这种循环引用其实也很简单了:  
+> -  __unsafe_unretained:不会产生强引用,不安全,指向的对象销毁时,指针存储的地址不变
+> - __weak:不会产生强引用,指向的对象销毁时,会自动让指针置为nil
+> - __block能用解决block内部想修改外部的局部变量的问题,也能解决循环引用的问题
+
+这里需要着重说一下block，我们先看一下，如果我用__block申明，编译器会做什么 
+```
+struct __Block_byref_weakP_0 {
+  void *__isa;
+__Block_byref_weakP_0 *__forwarding;
+ int __flags;
+ int __size;
+ void (*__Block_byref_id_object_copy)(void*, void*);
+ void (*__Block_byref_id_object_dispose)(void*);
+ typeof (p) weakP;
+};
+
+struct __main_block_impl_0 {
+  struct __block_impl impl;
+  struct __main_block_desc_0* Desc;
+  Persion *__strong p2;
+  __Block_byref_weakP_0 *weakP; // by ref
+  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, Persion *__strong _p2, __Block_byref_weakP_0 *_weakP, int flags=0) : p2(_p2), weakP(_weakP->__forwarding) {
+    impl.isa = &_NSConcreteStackBlock;
+    impl.Flags = flags;
+    impl.FuncPtr = fp;
+    Desc = desc;
+  }
+};
+```
+
+
+编译器会对__block修饰的 值/对象 包装成一个对象，__forwarding就指向的是这个对象自己的地址，如此一来，即可以通过__forwarding指针来寻找并做修改了。  
+需要注意的是，ARC下当使用__block来解循环引用的时候，实际上需要手动将__block的引用指向nil   
+这其实是一个三角引用   
+p -> block -> __block_p -> p
+
+  
+
 - ### delegate
 - ### NSTimer/CADisplyLink
 - - #### NSTimer
@@ -138,3 +208,8 @@ tags:
 
 - instrument
 - FLEX
+
+
+> 参考文档 
+> - [关于block的循环引用](https://juejin.cn/post/6943242244497358885)
+> - [iOS循环引用/内存泄漏检测工具](https://www.jianshu.com/p/df4988adb95e)
