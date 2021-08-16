@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://zhazhadan.github.io/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/circle-1.png">
 <meta property="og:image" content="https://zhazhadan.github.io/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/circle-2.png">
 <meta property="article:published_time" content="2021-08-08T14:41:03.000Z">
-<meta property="article:modified_time" content="2021-08-09T17:54:27.752Z">
+<meta property="article:modified_time" content="2021-08-16T16:01:47.935Z">
 <meta property="article:author" content="GDD">
 <meta property="article:tag" content="block">
 <meta property="article:tag" content="循环引用">
@@ -135,7 +135,20 @@
 
 <p>编译器会对__block修饰的 值/对象 包装成一个对象，__forwarding就指向的是这个对象自己的地址，如此一来，即可以通过__forwarding指针来寻找并做修改了。<br>需要注意的是，ARC下当使用__block来解循环引用的时候，实际上需要手动将__block的引用指向nil<br>这其实是一个三角引用<br>p -&gt; block -&gt; __block_p -&gt; p</p>
 <ul>
-<li><h3 id="delegate"><a href="#delegate" class="headerlink" title="delegate"></a>delegate</h3></li>
+<li><h3 id="delegate"><a href="#delegate" class="headerlink" title="delegate"></a>delegate</h3><blockquote>
+<p>这个就很常见了，一般我们都用weak修饰，但这里抛出一个问题，OC中的assign 能否修饰 delegate?</p>
+</blockquote>
+</li>
+<li><p>答案是可以的，只是这两种方式在实际结果不太一样，简单来说就是：</p>
+</li>
+<li><ul>
+<li>weak表示的是一个弱引用，这个引用不会增加对象的引用计数，并且在所指向的对象被释放之后，weak指针会被置为nil。</li>
+</ul>
+</li>
+<li><ul>
+<li>assign 只是单纯的指针赋值。举例如果把对象A的指针赋值给assign声明的成员变量B，则B只是简单地保存此指针的值，且并不持有对象A，也就意味着如果A被销毁，则B就指向了一个已经被销毁的对象，如果再对其发送消息会引发崩溃。</li>
+</ul>
+</li>
 <li><h3 id="NSTimer-CADisplyLink"><a href="#NSTimer-CADisplyLink" class="headerlink" title="NSTimer/CADisplyLink"></a>NSTimer/CADisplyLink</h3></li>
 <li><ul>
 <li><h4 id="NSTimer"><a href="#NSTimer" class="headerlink" title="NSTimer"></a>NSTimer</h4>通常我们创建的timer有几种方式<ul>
