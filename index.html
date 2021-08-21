@@ -67,6 +67,72 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-多线程探索一-概念" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/08/20/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5/" class="article-date">
+  <time datetime="2021-08-20T15:05:51.000Z" itemprop="datePublished">2021-08-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/08/20/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5/">多线程探索一-概念</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><pre><code>进程是系统资源分配和调度的独立单元
+进程是处于运行中的程序，是系统资源分配和调度的独立单位。
+iOS中一个app就是一个单独的进程，进程之间通常是不允许互相访问的。
+进程之间相互独立，一个进程崩溃不会影响其他进程。
+进程切换，消耗资源，效率低</code></pre>
+<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><pre><code>线程是处理器调度的基本单元
+线程是进程的基本执行单元，进程至少拥有一个线程即主线程。
+一个进程可以拥有多个线程，线程之间可以共享当前进程下的所有数据资源和地址空间。
+线程之间是独立运行的，一个线程是不知道其他线程的存在的。
+一个线程崩溃则整个进程都死掉了。
+线程切换代价小，效率高</code></pre>
+<h2 id="任务和队列"><a href="#任务和队列" class="headerlink" title="任务和队列"></a>任务和队列</h2><pre><code>任务就是执行代码， 执行任务分为两种 同步 和 异步，下面会讲到。
+队列就是任务的等待队列，队列的特点是FIFO(先进先出)，队列也分为两种 串行队列和并发队列 接下来会讲。
+任务是你要执行的代码，队列是指按照FIFO原则存放你要执行的任务，而真正执行是靠线程来执行的。而所有的这些资源调度是靠进程来完成的。</code></pre>
+<h3 id="同步和异步"><a href="#同步和异步" class="headerlink" title="同步和异步"></a>同步和异步</h3><pre><code>这里同步和异步描述的是任务的执行方式：
+- 同步任务：添加到队列的任务，要执行的任务会一直等到前面的任务执行完毕之后才开始，不具备开启新线程的能力，一般在当前线程中执行
+- 异步任务：添加到队列的任务，不需要等待前面的任务，加入之后就可以开辟新的线程去执行当前任务。有开启新线程的能力，但是不一定会开启。</code></pre>
+<h3 id="串行和并发"><a href="#串行和并发" class="headerlink" title="串行和并发"></a>串行和并发</h3><pre><code>- 串行队列： 只会开启一个线程，每次只能执行一个任务。
+- 并发队列： 可以开启多条线程，可以同时执行多个任务
+- iOS默认有两种队列：
+-  - 主队列-串行队列
+-  - 全局队列-并发队列
+-  同步任务需要放在串行队列中才有效
+-  异步任务配合并发队列才有效</code></pre>
+<h2 id="iOS多线程对比"><a href="#iOS多线程对比" class="headerlink" title="iOS多线程对比"></a>iOS多线程对比</h2><pre><code>这里借用网上的两张图  
+
+![多线程对比](多线程对比图.png)
+![多线程使用](多线程使用图.webp)</code></pre>
+<h2 id="什么是死锁"><a href="#什么是死锁" class="headerlink" title="什么是死锁"></a>什么是死锁</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zhazhadan.github.io/2021/08/20/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5/" data-id="cksl9vwnq0000cfzigfli9sd2" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GCD/" rel="tag">GCD</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-iOS循环引用" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" class="article-date">
@@ -483,49 +549,6 @@
 
 
   
-    <article id="post-synchronized在OC和swift中的前世今生" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" class="article-date">
-  <time datetime="2018-05-27T05:52:48.000Z" itemprop="datePublished">2018-05-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/">@synchronized在OC和swift中的前世今生</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="什么是锁"><a href="#什么是锁" class="headerlink" title="什么是锁"></a>什么是锁</h4><p>当多个线程同时操作同一块资源或者说同一个对象的时候，可能会造成各种意想不到的情况(比如数据错乱、资源争夺、崩溃等)，而锁就是为了能够保证同一时刻只有一个线程在操作这个数据应运而生的。</p>
-        
-          <p class="article-more-link">
-            <a href="/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/05/27/synchronized%E5%9C%A8OC%E5%92%8Cswift%E4%B8%AD%E7%9A%84%E5%89%8D%E4%B8%96%E4%BB%8A%E7%94%9F/" data-id="ckj15hfyp0005kuzi4d4dhdwv" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -544,7 +567,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptBridge/" rel="tag">JavaScriptBridge</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptCore/" rel="tag">JavaScriptCore</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSTimer-CADisplayLink/" rel="tag">NSTimer/CADisplayLink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/atomic/" rel="tag">atomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js%E4%BA%A4%E4%BA%92/" rel="tag">js交互</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mac/" rel="tag">mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nonatomic/" rel="tag">nonatomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift/" rel="tag">swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift-OC/" rel="tag">swift/OC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swiftUI/" rel="tag">swiftUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/theme/" rel="tag">theme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wkwebview/" rel="tag">wkwebview</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" rel="tag">内存泄漏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" rel="tag">循环引用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/GCD/" rel="tag">GCD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptBridge/" rel="tag">JavaScriptBridge</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptCore/" rel="tag">JavaScriptCore</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSTimer-CADisplayLink/" rel="tag">NSTimer/CADisplayLink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/atomic/" rel="tag">atomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js%E4%BA%A4%E4%BA%92/" rel="tag">js交互</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mac/" rel="tag">mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nonatomic/" rel="tag">nonatomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift/" rel="tag">swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift-OC/" rel="tag">swift/OC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swiftUI/" rel="tag">swiftUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/theme/" rel="tag">theme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wkwebview/" rel="tag">wkwebview</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" rel="tag">内存泄漏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" rel="tag">循环引用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
     </div>
   </div>
 
@@ -554,7 +577,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/JS/" style="font-size: 10px;">JS</a> <a href="/tags/JavaScriptBridge/" style="font-size: 10px;">JavaScriptBridge</a> <a href="/tags/JavaScriptCore/" style="font-size: 10px;">JavaScriptCore</a> <a href="/tags/NSTimer-CADisplayLink/" style="font-size: 10px;">NSTimer/CADisplayLink</a> <a href="/tags/Obective-C/" style="font-size: 13.33px;">Obective-C</a> <a href="/tags/SDWebImage/" style="font-size: 10px;">SDWebImage</a> <a href="/tags/Swift/" style="font-size: 10px;">Swift</a> <a href="/tags/atomic/" style="font-size: 10px;">atomic</a> <a href="/tags/block/" style="font-size: 16.67px;">block</a> <a href="/tags/github-pages/" style="font-size: 13.33px;">github pages</a> <a href="/tags/hexo/" style="font-size: 13.33px;">hexo</a> <a href="/tags/iOS/" style="font-size: 20px;">iOS</a> <a href="/tags/js%E4%BA%A4%E4%BA%92/" style="font-size: 10px;">js交互</a> <a href="/tags/mac/" style="font-size: 13.33px;">mac</a> <a href="/tags/nonatomic/" style="font-size: 10px;">nonatomic</a> <a href="/tags/swift/" style="font-size: 10px;">swift</a> <a href="/tags/swift-OC/" style="font-size: 10px;">swift/OC</a> <a href="/tags/swiftUI/" style="font-size: 10px;">swiftUI</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/theme/" style="font-size: 10px;">theme</a> <a href="/tags/wkwebview/" style="font-size: 10px;">wkwebview</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" style="font-size: 10px;">内存泄漏</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" style="font-size: 13.33px;">循环引用</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" style="font-size: 10px;">线程锁</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a>
+      <a href="/tags/GCD/" style="font-size: 10px;">GCD</a> <a href="/tags/JS/" style="font-size: 10px;">JS</a> <a href="/tags/JavaScriptBridge/" style="font-size: 10px;">JavaScriptBridge</a> <a href="/tags/JavaScriptCore/" style="font-size: 10px;">JavaScriptCore</a> <a href="/tags/NSTimer-CADisplayLink/" style="font-size: 10px;">NSTimer/CADisplayLink</a> <a href="/tags/Obective-C/" style="font-size: 13.33px;">Obective-C</a> <a href="/tags/SDWebImage/" style="font-size: 10px;">SDWebImage</a> <a href="/tags/Swift/" style="font-size: 10px;">Swift</a> <a href="/tags/atomic/" style="font-size: 10px;">atomic</a> <a href="/tags/block/" style="font-size: 16.67px;">block</a> <a href="/tags/github-pages/" style="font-size: 13.33px;">github pages</a> <a href="/tags/hexo/" style="font-size: 13.33px;">hexo</a> <a href="/tags/iOS/" style="font-size: 20px;">iOS</a> <a href="/tags/js%E4%BA%A4%E4%BA%92/" style="font-size: 10px;">js交互</a> <a href="/tags/mac/" style="font-size: 13.33px;">mac</a> <a href="/tags/nonatomic/" style="font-size: 10px;">nonatomic</a> <a href="/tags/swift/" style="font-size: 10px;">swift</a> <a href="/tags/swift-OC/" style="font-size: 10px;">swift/OC</a> <a href="/tags/swiftUI/" style="font-size: 10px;">swiftUI</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/theme/" style="font-size: 10px;">theme</a> <a href="/tags/wkwebview/" style="font-size: 10px;">wkwebview</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" style="font-size: 10px;">内存泄漏</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.33px;">多线程</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" style="font-size: 13.33px;">循环引用</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" style="font-size: 10px;">线程锁</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a>
     </div>
   </div>
 
@@ -576,6 +599,10 @@
       <ul>
         
           <li>
+            <a href="/2021/08/20/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5/">多线程探索一-概念</a>
+          </li>
+        
+          <li>
             <a href="/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/">iOS循环引用</a>
           </li>
         
@@ -589,10 +616,6 @@
         
           <li>
             <a href="/2021/01/06/SwiftUI%E5%AD%A6%E4%B9%A01/">SwiftUI学习1</a>
-          </li>
-        
-          <li>
-            <a href="/2020/12/08/%E8%A7%A3%E6%9E%90WebViewJavascriptBridge/">解析WebViewJavascriptBridge</a>
           </li>
         
       </ul>
