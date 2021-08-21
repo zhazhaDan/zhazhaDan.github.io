@@ -104,20 +104,24 @@ iOS中一个app就是一个单独的进程，进程之间通常是不允许互�
 队列就是任务的等待队列，队列的特点是FIFO(先进先出)，队列也分为两种 串行队列和并发队列 接下来会讲。
 任务是你要执行的代码，队列是指按照FIFO原则存放你要执行的任务，而真正执行是靠线程来执行的。而所有的这些资源调度是靠进程来完成的。</code></pre>
 <h3 id="同步和异步"><a href="#同步和异步" class="headerlink" title="同步和异步"></a>同步和异步</h3><pre><code>这里同步和异步描述的是任务的执行方式：
-- 同步任务：添加到队列的任务，要执行的任务会一直等到前面的任务执行完毕之后才开始，不具备开启新线程的能力，一般在当前线程中执行
-- 异步任务：添加到队列的任务，不需要等待前面的任务，加入之后就可以开辟新的线程去执行当前任务。有开启新线程的能力，但是不一定会开启。</code></pre>
-<h3 id="串行和并发"><a href="#串行和并发" class="headerlink" title="串行和并发"></a>串行和并发</h3><pre><code>- 串行队列： 只会开启一个线程，每次只能执行一个任务。
-- 并发队列： 可以开启多条线程，可以同时执行多个任务
-- iOS默认有两种队列：
--  - 主队列-串行队列
--  - 全局队列-并发队列
--  同步任务需要放在串行队列中才有效
--  异步任务配合并发队列才有效</code></pre>
-<h2 id="iOS多线程对比"><a href="#iOS多线程对比" class="headerlink" title="iOS多线程对比"></a>iOS多线程对比</h2><pre><code>这里借用网上的两张图  
+同步任务：添加到队列的任务，要执行的任务会一直等到前面的任务执行完毕之后才开始，不具备开启新线程的能力，一般在当前线程中执行
+异步任务：添加到队列的任务，不需要等待前面的任务，加入之后就可以开辟新的线程去执行当前任务。有开启新线程的能力，但是不一定会开启。</code></pre>
+<h3 id="串行和并发"><a href="#串行和并发" class="headerlink" title="串行和并发"></a>串行和并发</h3><pre><code>串行队列： 只会开启一个线程，每次只能执行一个任务。
+并发队列： 可以开启多条线程，可以同时执行多个任务
+iOS默认有两种队列：
+- 主队列-串行队列
+- 全局队列-并发队列
+同步任务需要放在串行队列中才有效
+异步任务配合并发队列才有效</code></pre>
+<h2 id="iOS多线程对比"><a href="#iOS多线程对比" class="headerlink" title="iOS多线程对比"></a>iOS多线程对比</h2><pre><code>这里借用网上的两张图  </code></pre>
+<p><img src="%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AF%B9%E6%AF%94%E5%9B%BE.png" alt="多线程对比"><br><img src="%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%BD%BF%E7%94%A8%E5%9B%BE.webp" alt="多线程使用"></p>
+<h2 id="什么是死锁"><a href="#什么是死锁" class="headerlink" title="什么是死锁"></a>什么是死锁</h2><pre><code>在一个串行队列的任务中，再向这个队列同步添加任务。
 
-![多线程对比](多线程对比图.png)
-![多线程使用](多线程使用图.webp)</code></pre>
-<h2 id="什么是死锁"><a href="#什么是死锁" class="headerlink" title="什么是死锁"></a>什么是死锁</h2>
+如下例子：</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- (void)viewDidLoad &#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    NSLog(@&quot;2&quot;);</span><br><span class="line">    dispatch_sync(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        NSLog(@&quot;串行队列中的同步任务&quot;);</span><br><span class="line">    &#125;);</span><br><span class="line">    NSLog(@&quot;2&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="参考文档："><a href="#参考文档：" class="headerlink" title="参考文档："></a>参考文档：</h3><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/68847e786069">iOS多线程实现方案对比</a></p>
+
       
     </div>
     <footer class="article-footer">
