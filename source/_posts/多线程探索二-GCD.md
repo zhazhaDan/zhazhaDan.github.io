@@ -118,6 +118,29 @@ dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_CONCURRENT
 3. dispatch_after 延时时间并不能完全准确
 4. 如果 dispatch_time函数用 DISPATCH_TIME_NOW 的话，不如直接用dispatch_async
    
+加个小tips
+```
+
+    dispatch_queue_t queue = dispatch_queue_create("test", DISPATCH_QUEUE_CONCURRENT);
+    dispatch_async(queue, ^{
+        NSLog(@"dispatch_async thread %@", [NSThread currentThread]);
+        [self performSelector:@selector(test) withObject:nil afterDelay:2];
+    });
+
+    NSLog(@"dispatch_async end thread %@", [NSThread currentThread]);
+
+    - (void)test {
+        NSLog(@"test at thread %@", [NSThread currentThread]);
+    }
+```
+上面的代码，test函数永远不会执行，这是为什么呢？ 
+> dispatch_async我们知道时有可能开启新线程的，概念篇里我们提到，新线程默认是不会开启runloop的，而perform：afterDelay：是依赖timer的，那么如果我们在子线程里没有手动开启runloop的话，他就不会去执行了。
+> 所以执行结果是这样的 
+```
+2021-08-22 14:05:38.913990+0800 GDDemo[87282:5839362] dispatch_async end thread <NSThread: 0x600000110400>{number = 1, name = main}
+2021-08-22 14:05:38.914842+0800 GDDemo[87282:5839511] dispatch_async thread <NSThread: 0x60000015d380>{number = 3, name = (null)}
+```
+
 ### dispatch_once 
 ```
  dispatch_once_t one;
