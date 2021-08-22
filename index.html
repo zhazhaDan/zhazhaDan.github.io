@@ -67,6 +67,120 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-线程探索三-NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/" class="article-date">
+  <time datetime="2021-08-22T05:26:22.000Z" itemprop="datePublished">2021-08-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/">线程探索三-NSOperation</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文属于多线程系列：<br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5.md">多线程探索一-概念</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD.md">多线程探索二-GCD</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation.md">多线程探索三-NSOperation</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81.md">多线程探索四-锁</a>  </p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>NSOperation是APPLE推出的基于 GCD 封装的一套面向对象的API，接口更加简洁，上手更加方便。<br>优点 </p>
+<blockquote>
+<ol>
+<li>可以直接设置最大并发量</li>
+<li>可以设置operation的执行顺序</li>
+<li>可以通过KVO监听任务的状态</li>
+<li>可以通过添加 completionBlock 在任务结束后做一些处理 </li>
+</ol>
+</blockquote>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="NSOperation"><a href="#NSOperation" class="headerlink" title="NSOperation"></a>NSOperation</h3><p>NSOperation是一个抽象类，无法直接使用。系统提供了两个子类的实现，可以直接上手，当然也可以自己继承定制operation。 </p>
+<p><img src="NSOperation%E7%8A%B6%E6%80%81%E5%9B%BE.png" alt="NSOperation状态图"></p>
+<h4 id="1-NSInvocationOperation"><a href="#1-NSInvocationOperation" class="headerlink" title="1. NSInvocationOperation"></a>1. NSInvocationOperation</h4><p>非并发的operation，通过 target selector添加任务</p>
+<h4 id="2-NSBlockOperation"><a href="#2-NSBlockOperation" class="headerlink" title="2. NSBlockOperation"></a>2. NSBlockOperation</h4><p>并发的operation，通过添加block添加并发任务，可以在一个opertation中添加多个block并发执行。<br>当所有的block都执行完成后，operation会自动finish.</p>
+<p>测试发现   </p>
+<figure class="highlight plain"><figcaption><span>blockOperationWithBlock: ``` 添加的任务 一般在当前线程执行</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#96;&#96;&#96; - addExecutionBlock: &#96;&#96;&#96; 有开启新线程的能力</span><br><span class="line"></span><br><span class="line">#### 3. custom Operation </span><br><span class="line">自定义operation, 抽象类提供了几个方法 [官方文档](https:&#x2F;&#x2F;developer.apple.com&#x2F;documentation&#x2F;foundation&#x2F;nsoperation?language&#x3D;objc) 其实超级详细   </span><br><span class="line"></span><br><span class="line">非并发的operation </span><br><span class="line">&#96;&#96;&#96; main &#96;&#96;&#96; 一般推荐把task内容放在这里, 如果需要访问operation里的数据，记得保证线程安全</span><br><span class="line"></span><br><span class="line">并发的operation 至少需要重写以下几个方法</span><br></pre></td></tr></table></figure>
+<p>start       此方法默认在当前线程，所以如果需要异步开启任务，需要在这里开启新线程 去执行任务<br>asynchronous    当前是同步还是异步的<br>executing       当前operation是否正在执行<br>finished        当前operation是否执行完</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">finished这个状态在操作完成后请及时设置为YES，因为NSOperationQueue所管理的队列中，只有isFinished为YES时才将其移除队列，这点在内存管理和避免死锁很关键。</span><br><span class="line"></span><br><span class="line">下面是个demo  </span><br></pre></td></tr></table></figure>
+
+<p>#import “CustomOperation.h”</p>
+<p>@interface CustomOperation()<br>@property (assign, nonatomic, getter = isExecuting) BOOL executing;<br>@property (assign, nonatomic, getter = isFinished) BOOL finished;<br>@end</p>
+<p>@implementation CustomOperation</p>
+<p>@synthesize executing = _executing;<br>@synthesize finished = _finished;</p>
+<ul>
+<li><p>(void)main {<br>  if (self.isCancelled) {</p>
+<pre><code>  return;</code></pre>
+<p>  }<br>  NSLog(@”begin executing %@ at %@”, NSStringFromSelector(_cmd), [NSThread currentThread]);</p>
+<p>  for (int i = 0; i &lt; 10; i++) {</p>
+<pre><code>  if (self.isCancelled) &#123;
+      self.executing = NO;
+      self.finished = NO;
+      return;
+  &#125;
+  NSLog(@&quot;%@ at thread %@&quot;, NSStringFromClass([self class]), [NSThread currentThread]);</code></pre>
+<p>  }<br>  self.executing = NO;<br>  self.finished = YES;<br>  NSLog(@”finish executing %@ at %@”, NSStringFromSelector(_cmd), [NSThread currentThread]);<br>}</p>
+</li>
+<li><p>(void)start {<br>  @synchronized (self) {</p>
+<pre><code>  if (self.isCancelled) &#123;
+      return;
+  &#125;
+  [NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil]; //默认start在主线程，如果想开启子线程，就需要手动开始子线程执行</code></pre>
+<p>  //    [self main];</p>
+<pre><code>  self.executing = YES;</code></pre>
+<p>  }<br>}</p>
+</li>
+<li><p>(void)cancel {<br>  @synchronized (self) {</p>
+<pre><code>  if (self.isFinished) &#123;
+      return;
+  &#125;
+  [super cancel];
+  if (self.isExecuting) &#123;
+      self.executing = NO;
+  &#125;
+  if (!self.isFinished) &#123;
+      self.finished = YES;
+  &#125;</code></pre>
+<p>  }<br>}</p>
+</li>
+</ul>
+<ul>
+<li>(BOOL)isAsynchronous {<br>  return YES;<br>}</li>
+</ul>
+<p>// custom 通知KVO</p>
+<ul>
+<li><p>(void)setExecuting:(BOOL)executing {<br>  [self willChangeValueForKey:@”isExecuting”];<br>  _executing = executing;<br>  [self didChangeValueForKey:@”isExecuting”];<br>}</p>
+</li>
+<li><p>(void)setFinished:(BOOL)finished {<br>  [self willChangeValueForKey:@”isFinished”];<br>  _finished = finished;<br>  [self didChangeValueForKey:@”isFinished”];<br>}</p>
+</li>
+</ul>
+<p>@end</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&gt; ### KVO   </span><br><span class="line">&gt; isCancelled - read-only  </span><br><span class="line">isAsynchronous - read-only  </span><br><span class="line">isExecuting - read-only  </span><br><span class="line">isFinished - read-only  </span><br><span class="line">isReady - read-only  </span><br><span class="line">dependencies - read-only  </span><br><span class="line">queuePriority - readable and writable  </span><br><span class="line">completionBlock - readable and writable  </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### NSoperationQueue</span><br><span class="line">NSoperationQueue 和 NSOperation配合使用 </span><br><span class="line">NSoperationQueue内的对象是线程安全的</span><br><span class="line">NSoperationQueue同时支持KVC和KVO  </span><br></pre></td></tr></table></figure>
+<p>operations - read-only<br>operationCount - read-only<br>maxConcurrentOperationCount - readable and writable<br>suspended - readable and writable<br>name - readable and writable</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">NSOperation 可以设置Dependency 但是 dependency的设置需要在operation 添加到 operation queue 之前才能生效。dependency可以跨queue。 当queue的maxConcurrentOperationCount &#x3D;&#x3D; 1 的时候 无效。</span><br><span class="line"></span><br><span class="line">NSOperationQueuePriority  默认是normal，当有需要时并且在没有设置dependency的情况下使用。 (不过本人尝试后发现并没有什么效果 ~~)  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>addBarrierBlock:</p>
+<pre><code>此方法是iOS13以后添加的，用法类似dispatch_barrier,详情可以参考上篇 [多线程探索二-GCD](../_posts/多线程探索二-GCD.md)  ,可以用于在queue里前面添加的task执行后做一些同一个处理。 
+
+&gt; tips: 建议研究下SDWebImage，看下人家是怎么用NSOperation的。
+</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zhazhadan.github.io/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/" data-id="cksnb07cq0000eozics45dayb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-多线程探索二-GCD" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/08/21/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD/" class="article-date">
@@ -129,7 +243,22 @@
 <h3 id="dispatch-after"><a href="#dispatch-after" class="headerlink" title="dispatch_after"></a>dispatch_after</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">dispatch_queue_t queue &#x3D; dispatch_queue_create(&quot;test&quot;, DISPATCH_QUEUE_CONCURRENT);</span><br><span class="line">    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), queue, ^&#123;</span><br><span class="line">        NSLog(@&quot;dispatch_after current thread %@&quot;, [NSThread currentThread]);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    dispatch_async(queue, ^&#123;</span><br><span class="line">        NSLog(@&quot;dispatch_async at thread %@&quot;, [NSThread currentThread]);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    dispatch_sync(queue, ^&#123;</span><br><span class="line">        NSLog(@&quot;dispatch_sync at thread %@&quot;, [NSThread currentThread]);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>打印结果 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">2021-08-21 23:43:24.588899+0800 GDDemo[79102:5235427] dispatch_sync at thread &lt;NSThread: 0x600001edc700&gt;&#123;number &#x3D; 1, name &#x3D; main&#125;</span><br><span class="line">2021-08-21 23:43:24.589172+0800 GDDemo[79102:5235535] dispatch_async at thread &lt;NSThread: 0x600001e59240&gt;&#123;number &#x3D; 8, name &#x3D; (null)&#125;</span><br><span class="line">2021-08-21 23:43:26.588595+0800 GDDemo[79102:5235536] dispatch_after current thread &lt;NSThread: 0x600001e99280&gt;&#123;number &#x3D; 7, name &#x3D; (null)&#125;</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96; </span><br><span class="line">总结几点：   </span><br><span class="line">1. dispatch_after 方法并不是在指定时间之后才开始执行处理，而是在指定时间之后将任务追加到主队列中。</span><br><span class="line">2. dispatch_after 有能力开启一个新线程</span><br><span class="line">3. dispatch_after 延时时间并不能完全准确</span><br><span class="line">4. 如果 dispatch_time函数用 DISPATCH_TIME_NOW 的话，不如直接用dispatch_async</span><br><span class="line">   </span><br><span class="line">### dispatch_once </span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">2021-08-21 23:43:24.588899+0800 GDDemo[79102:5235427] dispatch_sync at thread &lt;NSThread: 0x600001edc700&gt;&#123;number &#x3D; 1, name &#x3D; main&#125;</span><br><span class="line">2021-08-21 23:43:24.589172+0800 GDDemo[79102:5235535] dispatch_async at thread &lt;NSThread: 0x600001e59240&gt;&#123;number &#x3D; 8, name &#x3D; (null)&#125;</span><br><span class="line">2021-08-21 23:43:26.588595+0800 GDDemo[79102:5235536] dispatch_after current thread &lt;NSThread: 0x600001e99280&gt;&#123;number &#x3D; 7, name &#x3D; (null)&#125;</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96; </span><br><span class="line">总结几点：   </span><br><span class="line">1. dispatch_after 方法并不是在指定时间之后才开始执行处理，而是在指定时间之后将任务追加到主队列中。</span><br><span class="line">2. dispatch_after 有能力开启一个新线程</span><br><span class="line">3. dispatch_after 延时时间并不能完全准确</span><br><span class="line">4. 如果 dispatch_time函数用 DISPATCH_TIME_NOW 的话，不如直接用dispatch_async</span><br><span class="line">   </span><br><span class="line">加个小tips</span><br></pre></td></tr></table></figure>
+
+<pre><code>dispatch_queue_t queue = dispatch_queue_create(&quot;test&quot;, DISPATCH_QUEUE_CONCURRENT);
+dispatch_async(queue, ^&#123;
+    NSLog(@&quot;dispatch_async thread %@&quot;, [NSThread currentThread]);
+    [self performSelector:@selector(test) withObject:nil afterDelay:2];
+&#125;);
+
+NSLog(@&quot;dispatch_async end thread %@&quot;, [NSThread currentThread]);
+
+- (void)test &#123;
+    NSLog(@&quot;test at thread %@&quot;, [NSThread currentThread]);
+&#125;</code></pre>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">上面的代码，test函数永远不会执行，这是为什么呢？ </span><br><span class="line">&gt; dispatch_async我们知道时有可能开启新线程的，概念篇里我们提到，新线程默认是不会开启runloop的，而perform：afterDelay：是依赖timer的，那么如果我们在子线程里没有手动开启runloop的话，他就不会去执行了。</span><br><span class="line">&gt; 所以执行结果是这样的 </span><br></pre></td></tr></table></figure>
+<p>2021-08-22 14:05:38.913990+0800 GDDemo[87282:5839362] dispatch_async end thread &lt;NSThread: 0x600000110400&gt;{number = 1, name = main}<br>2021-08-22 14:05:38.914842+0800 GDDemo[87282:5839511] dispatch_async thread &lt;NSThread: 0x60000015d380&gt;{number = 3, name = (null)}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">### dispatch_once </span><br></pre></td></tr></table></figure>
 <p> dispatch_once_t one;<br>    dispatch_once(&amp;one, ^{<br>        NSLog(@”1 at thread %@”, [NSThread currentThread]);<br>    });</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">app生命周期内只调用一次，多用于单例 </span><br><span class="line">dispatch_once是同步任务，要等到block执行后才会返回</span><br><span class="line">这里可以引申出两个问题： </span><br><span class="line">1. 单例如何销毁</span><br><span class="line">2. 单例如何避免创建多个，如果我在其他地方调用alloc init呢？</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### dispatch_apply </span><br><span class="line"></span><br><span class="line">1. dispatch_apply 按照指定的次数将指定的任务追加到指定的队列中，并等待全部队列执行结束。</span><br><span class="line">2. 无论是在串行队列，还是并发队列中，dispatch_apply 都会等待全部任务执行完毕，这点就像是同步操作，也像是队列组中的 dispatch_group_wait方法。 </span><br></pre></td></tr></table></figure>
 <pre><code>dispatch_queue_t queue = dispatch_queue_create(&quot;test&quot;, DISPATCH_QUEUE_CONCURRENT);
@@ -570,50 +699,6 @@ iOS默认有两种队列：
 
 
   
-    <article id="post-深拷贝和浅拷贝" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/" class="article-date">
-  <time datetime="2018-06-01T07:57:12.000Z" itemprop="datePublished">2018-06-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/">深拷贝和浅拷贝</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="深拷贝和浅拷贝"><a href="#深拷贝和浅拷贝" class="headerlink" title="深拷贝和浅拷贝"></a>深拷贝和浅拷贝</h3><ul>
-<li>浅拷贝： 是指源对象和拷贝对用公用同一份内存，只是分配的指针地址不同，但是实际上指向的是同一快内存空间。而只要内存空间不变，一个对象的改动都会影响另一个对象。</li>
-<li>深拷贝：是指新的对象新开辟了一块内存空间，将源对象的内容拷贝过去了，这时候内存和地址都不相同，相当于独立的两个对象，互不影响   </li>
-</ul>
-        
-          <p class="article-more-link">
-            <a href="/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2018/06/01/%E6%B7%B1%E6%8B%B7%E8%B4%9D%E5%92%8C%E6%B5%85%E6%8B%B7%E8%B4%9D/" data-id="ckj15hfys000akuzi57w354dj" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -664,6 +749,10 @@ iOS默认有两种队列：
       <ul>
         
           <li>
+            <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/">线程探索三-NSOperation</a>
+          </li>
+        
+          <li>
             <a href="/2021/08/21/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD/">多线程探索二-GCD</a>
           </li>
         
@@ -677,10 +766,6 @@ iOS默认有两种队列：
         
           <li>
             <a href="/2021/08/08/%E6%8E%A2%E7%B4%A2block-block%E7%9A%84%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8-%E4%BA%8C/">探索block-block的循环引用(二)</a>
-          </li>
-        
-          <li>
-            <a href="/2021/07/25/%E6%8E%A2%E7%B4%A2block-%E4%B8%80/">探索block(一)</a>
           </li>
         
       </ul>

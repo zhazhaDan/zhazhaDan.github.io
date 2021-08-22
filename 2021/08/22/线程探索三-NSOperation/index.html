@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>线程探索三-NSOperation | GDD的博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本文属于多线程系列：多线程探索一-概念多线程探索二-GCD多线程探索三-NSOperation多线程探索四-锁   概念NSOperation是APPLE推出的基于 GCD 封装的一套面向对象的API，接口更加简洁，上手更加方便。优点    可以直接设置最大并发量 可以设置operation的执行顺序 可以通过KVO监听任务的状态 可以通过添加 completionBlock 在任务结束后做一些处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线程探索三-NSOperation">
+<meta property="og:url" content="https://zhazhadan.github.io/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/index.html">
+<meta property="og:site_name" content="GDD的博客">
+<meta property="og:description" content="本文属于多线程系列：多线程探索一-概念多线程探索二-GCD多线程探索三-NSOperation多线程探索四-锁   概念NSOperation是APPLE推出的基于 GCD 封装的一套面向对象的API，接口更加简洁，上手更加方便。优点    可以直接设置最大并发量 可以设置operation的执行顺序 可以通过KVO监听任务的状态 可以通过添加 completionBlock 在任务结束后做一些处">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zhazhadan.github.io/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/NSOperation%E7%8A%B6%E6%80%81%E5%9B%BE.png">
+<meta property="article:published_time" content="2021-08-22T05:26:22.000Z">
+<meta property="article:modified_time" content="2021-08-22T14:24:36.580Z">
+<meta property="article:author" content="GDD">
+<meta property="article:tag" content="单纯、天真、热情、傻缺、二逼">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zhazhadan.github.io/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/NSOperation%E7%8A%B6%E6%80%81%E5%9B%BE.png">
+  
+    <link rel="alternate" href="/atom.xml" title="GDD的博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">GDD的博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zhazhaDan.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-线程探索三-NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/" class="article-date">
+  <time datetime="2021-08-22T05:26:22.000Z" itemprop="datePublished">2021-08-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      线程探索三-NSOperation
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文属于多线程系列：<br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5.md">多线程探索一-概念</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD.md">多线程探索二-GCD</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation.md">多线程探索三-NSOperation</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81.md">多线程探索四-锁</a>  </p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>NSOperation是APPLE推出的基于 GCD 封装的一套面向对象的API，接口更加简洁，上手更加方便。<br>优点 </p>
+<blockquote>
+<ol>
+<li>可以直接设置最大并发量</li>
+<li>可以设置operation的执行顺序</li>
+<li>可以通过KVO监听任务的状态</li>
+<li>可以通过添加 completionBlock 在任务结束后做一些处理 </li>
+</ol>
+</blockquote>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="NSOperation"><a href="#NSOperation" class="headerlink" title="NSOperation"></a>NSOperation</h3><p>NSOperation是一个抽象类，无法直接使用。系统提供了两个子类的实现，可以直接上手，当然也可以自己继承定制operation。 </p>
+<p><img src="NSOperation%E7%8A%B6%E6%80%81%E5%9B%BE.png" alt="NSOperation状态图"></p>
+<h4 id="1-NSInvocationOperation"><a href="#1-NSInvocationOperation" class="headerlink" title="1. NSInvocationOperation"></a>1. NSInvocationOperation</h4><p>非并发的operation，通过 target selector添加任务</p>
+<h4 id="2-NSBlockOperation"><a href="#2-NSBlockOperation" class="headerlink" title="2. NSBlockOperation"></a>2. NSBlockOperation</h4><p>并发的operation，通过添加block添加并发任务，可以在一个opertation中添加多个block并发执行。<br>当所有的block都执行完成后，operation会自动finish.</p>
+<p>测试发现   </p>
+<figure class="highlight plain"><figcaption><span>blockOperationWithBlock: ``` 添加的任务 一般在当前线程执行</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#96;&#96;&#96; - addExecutionBlock: &#96;&#96;&#96; 有开启新线程的能力</span><br><span class="line"></span><br><span class="line">#### 3. custom Operation </span><br><span class="line">自定义operation, 抽象类提供了几个方法 [官方文档](https:&#x2F;&#x2F;developer.apple.com&#x2F;documentation&#x2F;foundation&#x2F;nsoperation?language&#x3D;objc) 其实超级详细   </span><br><span class="line"></span><br><span class="line">非并发的operation </span><br><span class="line">&#96;&#96;&#96; main &#96;&#96;&#96; 一般推荐把task内容放在这里, 如果需要访问operation里的数据，记得保证线程安全</span><br><span class="line"></span><br><span class="line">并发的operation 至少需要重写以下几个方法</span><br></pre></td></tr></table></figure>
+<p>start       此方法默认在当前线程，所以如果需要异步开启任务，需要在这里开启新线程 去执行任务<br>asynchronous    当前是同步还是异步的<br>executing       当前operation是否正在执行<br>finished        当前operation是否执行完</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">finished这个状态在操作完成后请及时设置为YES，因为NSOperationQueue所管理的队列中，只有isFinished为YES时才将其移除队列，这点在内存管理和避免死锁很关键。</span><br><span class="line"></span><br><span class="line">下面是个demo  </span><br></pre></td></tr></table></figure>
+
+<p>#import “CustomOperation.h”</p>
+<p>@interface CustomOperation()<br>@property (assign, nonatomic, getter = isExecuting) BOOL executing;<br>@property (assign, nonatomic, getter = isFinished) BOOL finished;<br>@end</p>
+<p>@implementation CustomOperation</p>
+<p>@synthesize executing = _executing;<br>@synthesize finished = _finished;</p>
+<ul>
+<li><p>(void)main {<br>  if (self.isCancelled) {</p>
+<pre><code>  return;</code></pre>
+<p>  }<br>  NSLog(@”begin executing %@ at %@”, NSStringFromSelector(_cmd), [NSThread currentThread]);</p>
+<p>  for (int i = 0; i &lt; 10; i++) {</p>
+<pre><code>  if (self.isCancelled) &#123;
+      self.executing = NO;
+      self.finished = NO;
+      return;
+  &#125;
+  NSLog(@&quot;%@ at thread %@&quot;, NSStringFromClass([self class]), [NSThread currentThread]);</code></pre>
+<p>  }<br>  self.executing = NO;<br>  self.finished = YES;<br>  NSLog(@”finish executing %@ at %@”, NSStringFromSelector(_cmd), [NSThread currentThread]);<br>}</p>
+</li>
+<li><p>(void)start {<br>  @synchronized (self) {</p>
+<pre><code>  if (self.isCancelled) &#123;
+      return;
+  &#125;
+  [NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil]; //默认start在主线程，如果想开启子线程，就需要手动开始子线程执行</code></pre>
+<p>  //    [self main];</p>
+<pre><code>  self.executing = YES;</code></pre>
+<p>  }<br>}</p>
+</li>
+<li><p>(void)cancel {<br>  @synchronized (self) {</p>
+<pre><code>  if (self.isFinished) &#123;
+      return;
+  &#125;
+  [super cancel];
+  if (self.isExecuting) &#123;
+      self.executing = NO;
+  &#125;
+  if (!self.isFinished) &#123;
+      self.finished = YES;
+  &#125;</code></pre>
+<p>  }<br>}</p>
+</li>
+</ul>
+<ul>
+<li>(BOOL)isAsynchronous {<br>  return YES;<br>}</li>
+</ul>
+<p>// custom 通知KVO</p>
+<ul>
+<li><p>(void)setExecuting:(BOOL)executing {<br>  [self willChangeValueForKey:@”isExecuting”];<br>  _executing = executing;<br>  [self didChangeValueForKey:@”isExecuting”];<br>}</p>
+</li>
+<li><p>(void)setFinished:(BOOL)finished {<br>  [self willChangeValueForKey:@”isFinished”];<br>  _finished = finished;<br>  [self didChangeValueForKey:@”isFinished”];<br>}</p>
+</li>
+</ul>
+<p>@end</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&gt; ### KVO   </span><br><span class="line">&gt; isCancelled - read-only  </span><br><span class="line">isAsynchronous - read-only  </span><br><span class="line">isExecuting - read-only  </span><br><span class="line">isFinished - read-only  </span><br><span class="line">isReady - read-only  </span><br><span class="line">dependencies - read-only  </span><br><span class="line">queuePriority - readable and writable  </span><br><span class="line">completionBlock - readable and writable  </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### NSoperationQueue</span><br><span class="line">NSoperationQueue 和 NSOperation配合使用 </span><br><span class="line">NSoperationQueue内的对象是线程安全的</span><br><span class="line">NSoperationQueue同时支持KVC和KVO  </span><br></pre></td></tr></table></figure>
+<p>operations - read-only<br>operationCount - read-only<br>maxConcurrentOperationCount - readable and writable<br>suspended - readable and writable<br>name - readable and writable</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">NSOperation 可以设置Dependency 但是 dependency的设置需要在operation 添加到 operation queue 之前才能生效。dependency可以跨queue。 当queue的maxConcurrentOperationCount &#x3D;&#x3D; 1 的时候 无效。</span><br><span class="line"></span><br><span class="line">NSOperationQueuePriority  默认是normal，当有需要时并且在没有设置dependency的情况下使用。 (不过本人尝试后发现并没有什么效果 ~~)  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>addBarrierBlock:</p>
+<pre><code>此方法是iOS13以后添加的，用法类似dispatch_barrier,详情可以参考上篇 [多线程探索二-GCD](../_posts/多线程探索二-GCD.md)  ,可以用于在queue里前面添加的task执行后做一些同一个处理。 
+
+&gt; tips: 建议研究下SDWebImage，看下人家是怎么用NSOperation的。
+</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zhazhadan.github.io/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/" data-id="cksnb07cq0000eozics45dayb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/08/21/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">多线程探索二-GCD</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/GCD/" rel="tag">GCD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptBridge/" rel="tag">JavaScriptBridge</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScriptCore/" rel="tag">JavaScriptCore</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NSTimer-CADisplayLink/" rel="tag">NSTimer/CADisplayLink</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Obective-C/" rel="tag">Obective-C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Swift/" rel="tag">Swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/atomic/" rel="tag">atomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/block/" rel="tag">block</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/github-pages/" rel="tag">github pages</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iOS/" rel="tag">iOS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/js%E4%BA%A4%E4%BA%92/" rel="tag">js交互</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mac/" rel="tag">mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nonatomic/" rel="tag">nonatomic</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift/" rel="tag">swift</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swift-OC/" rel="tag">swift/OC</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/swiftUI/" rel="tag">swiftUI</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/theme/" rel="tag">theme</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wkwebview/" rel="tag">wkwebview</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" rel="tag">内存泄漏</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" rel="tag">循环引用</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/GCD/" style="font-size: 10px;">GCD</a> <a href="/tags/JS/" style="font-size: 10px;">JS</a> <a href="/tags/JavaScriptBridge/" style="font-size: 10px;">JavaScriptBridge</a> <a href="/tags/JavaScriptCore/" style="font-size: 10px;">JavaScriptCore</a> <a href="/tags/NSTimer-CADisplayLink/" style="font-size: 10px;">NSTimer/CADisplayLink</a> <a href="/tags/Obective-C/" style="font-size: 13.33px;">Obective-C</a> <a href="/tags/SDWebImage/" style="font-size: 10px;">SDWebImage</a> <a href="/tags/Swift/" style="font-size: 10px;">Swift</a> <a href="/tags/atomic/" style="font-size: 10px;">atomic</a> <a href="/tags/block/" style="font-size: 16.67px;">block</a> <a href="/tags/github-pages/" style="font-size: 13.33px;">github pages</a> <a href="/tags/hexo/" style="font-size: 13.33px;">hexo</a> <a href="/tags/iOS/" style="font-size: 20px;">iOS</a> <a href="/tags/js%E4%BA%A4%E4%BA%92/" style="font-size: 10px;">js交互</a> <a href="/tags/mac/" style="font-size: 13.33px;">mac</a> <a href="/tags/nonatomic/" style="font-size: 10px;">nonatomic</a> <a href="/tags/swift/" style="font-size: 10px;">swift</a> <a href="/tags/swift-OC/" style="font-size: 10px;">swift/OC</a> <a href="/tags/swiftUI/" style="font-size: 10px;">swiftUI</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/theme/" style="font-size: 10px;">theme</a> <a href="/tags/wkwebview/" style="font-size: 10px;">wkwebview</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" style="font-size: 10px;">内存泄漏</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 13.33px;">多线程</a> <a href="/tags/%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/" style="font-size: 13.33px;">循环引用</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" style="font-size: 10px;">线程锁</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/">线程探索三-NSOperation</a>
+          </li>
+        
+          <li>
+            <a href="/2021/08/21/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD/">多线程探索二-GCD</a>
+          </li>
+        
+          <li>
+            <a href="/2021/08/20/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5/">多线程探索一-概念</a>
+          </li>
+        
+          <li>
+            <a href="/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/">iOS循环引用</a>
+          </li>
+        
+          <li>
+            <a href="/2021/08/08/%E6%8E%A2%E7%B4%A2block-block%E7%9A%84%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8-%E4%BA%8C/">探索block-block的循环引用(二)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 GDD<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
