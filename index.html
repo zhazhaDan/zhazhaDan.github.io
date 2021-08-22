@@ -67,6 +67,94 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-多线程探索四-锁" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/08/22/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81/" class="article-date">
+  <time datetime="2021-08-22T15:27:11.000Z" itemprop="datePublished">2021-08-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/08/22/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81/">多线程探索四-锁</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%80-%E6%A6%82%E5%BF%B5.md">多线程探索一-概念</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%BA%8C-GCD.md">多线程探索二-GCD</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation.md">多线程探索三-NSOperation</a><br><a href="../_posts/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81.md">多线程探索四-锁</a>  </p>
+<h2 id="iOS当中都有哪些锁"><a href="#iOS当中都有哪些锁" class="headerlink" title="iOS当中都有哪些锁"></a>iOS当中都有哪些锁</h2><ol>
+<li><h3 id="互斥锁"><a href="#互斥锁" class="headerlink" title="互斥锁"></a>互斥锁</h3><ul>
+<li><h4 id="NSLock-foundation"><a href="#NSLock-foundation" class="headerlink" title="NSLock  foundation"></a>NSLock  foundation</h4><p>不支持重入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">- (void)A &#123;</span><br><span class="line">    [lock lock];</span><br><span class="line">    B();</span><br><span class="line">    [lock unlock];</span><br><span class="line">&#125;</span><br><span class="line">- (void)B &#123;</span><br><span class="line">    [lock lock];</span><br><span class="line">    &#x2F;&#x2F;do something</span><br><span class="line">    [lock unlock];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的写法容易导致死锁，这种情况下就需要用递归锁来解决   </p>
+</li>
+<li><h3 id="pthread-mutex"><a href="#pthread-mutex" class="headerlink" title="pthread_mutex"></a>pthread_mutex</h3><p>pthread_mutex是跨平台，iOS系统自带多线程技术pthread的线程锁 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">pthread_mutex_t pthreadmutex;</span><br><span class="line"></span><br><span class="line">&#x2F;*</span><br><span class="line"> #define PTHREAD_MUTEX_NORMAL           0     默认</span><br><span class="line"> #define PTHREAD_MUTEX_ERRORCHECK       1     检错锁</span><br><span class="line"> #define PTHREAD_MUTEX_RECURSIVE        2  递归锁</span><br><span class="line"> #define PTHREAD_MUTEX_DEFAULT        PTHREAD_MUTEX_NORMAL  默认</span><br><span class="line"> *&#x2F;</span><br><span class="line"></span><br><span class="line">pthread_mutex_init(&amp;pthreadmutex, PTHREAD_MUTEX_NORMAL);</span><br><span class="line">dispatch_queue_t q &#x3D; dispatch_get_global_queue(0, 0);</span><br><span class="line">__block int count &#x3D; 0;</span><br><span class="line">for (int i &#x3D; 0; i&lt;10000; i++) &#123;</span><br><span class="line">    dispatch_async(q, ^&#123;</span><br><span class="line">        pthread_mutex_lock(&amp;pthreadmutex);</span><br><span class="line">        count ++;</span><br><span class="line">        NSLog(@&quot;%d&quot;,count);</span><br><span class="line">        pthread_mutex_unlock(&amp;pthreadmutex);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line">pthread_mutex_destroy(&amp;pthreadmutex);</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><h3 id="synchronized"><a href="#synchronized" class="headerlink" title="@synchronized"></a>@synchronized</h3><ul>
+<li>创建单例对象的时候，保证多线程下 对象唯一</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><h3 id="递归锁-重入锁"><a href="#递归锁-重入锁" class="headerlink" title="递归锁/重入锁"></a>递归锁/重入锁</h3><p>递归锁/重入锁有一个特点，就是同一个线程可以加锁N次而不会引发死锁。</p>
+<ul>
+<li><h4 id="synchronized-1"><a href="#synchronized-1" class="headerlink" title="@synchronized"></a>@synchronized</h4>   创建单例对象的时候，保证多线程下 对象唯一</li>
+<li><h4 id="NSRecursiveLock"><a href="#NSRecursiveLock" class="headerlink" title="NSRecursiveLock"></a>NSRecursiveLock</h4></li>
+<li><h4 id="pthread-mutex-recursive"><a href="#pthread-mutex-recursive" class="headerlink" title="pthread_mutex(recursive)"></a>pthread_mutex(recursive)</h4></li>
+</ul>
+</li>
+<li><h3 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h3><ul>
+<li><h4 id="OSSpinLock"><a href="#OSSpinLock" class="headerlink" title="OSSpinLock"></a>OSSpinLock</h4>   循环等待询问，不释放当前资源<br>   用于轻量级数据访问，简单的int值 +1/-1 操作<br>   runtime<br>   iOS10以后被弃用</li>
+<li><h4 id="os-unfair-lock"><a href="#os-unfair-lock" class="headerlink" title="os_unfair_lock"></a>os_unfair_lock</h4><blockquote>
+<p>何时使用自旋锁，何时使用互斥锁：<br>当预计线程等待锁的时间很短，或者加锁的代码（临界区）经常被调用，但竞争情况很少发生，再或者CPU资源不紧张，拥有多核处理器的时候使用自旋锁比较合适。<br>而当预计线程等待锁的时间较长，CPU是单核处理器，或者临界区有IO操作，或者临界区代码复杂或者循环量大，临界区竞争非常激烈的时候使用互斥锁比较合适</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ol>
+<ol start="4">
+<li><h3 id="读写锁-pthread的API"><a href="#读写锁-pthread的API" class="headerlink" title="读写锁 pthread的API"></a>读写锁 pthread的API</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pthread_rwlock</span><br><span class="line">&#x2F;&#x2F;加读锁</span><br><span class="line">pthread_rwlock_rdlock(&amp;rwlock);</span><br><span class="line">&#x2F;&#x2F;解锁</span><br><span class="line">pthread_rwlock_unlock(&amp;rwlock);</span><br><span class="line">&#x2F;&#x2F;加写锁</span><br><span class="line">pthread_rwlock_wrlock(&amp;rwlock);</span><br><span class="line">&#x2F;&#x2F;解锁</span><br><span class="line">pthread_rwlock_unlock(&amp;rwlock);</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><h3 id="条件锁-NSCondition-NSConditionLock"><a href="#条件锁-NSCondition-NSConditionLock" class="headerlink" title="条件锁 NSCondition/NSConditionLock"></a>条件锁 NSCondition/NSConditionLock</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">dispatch_queue_t q &#x3D; dispatch_queue_create(&quot;struggle3g&quot;, DISPATCH_QUEUE_CONCURRENT);</span><br><span class="line"></span><br><span class="line">NSCondition *lock &#x3D; [[NSCondition alloc] init];</span><br><span class="line">&#x2F;&#x2F;第一个线程</span><br><span class="line">__block BOOL finished &#x3D; NO;</span><br><span class="line">dispatch_async(q, ^&#123;</span><br><span class="line">    [lock lock];</span><br><span class="line">    while (!finished) &#123;</span><br><span class="line">        [lock wait];</span><br><span class="line">        NSLog(@&quot;第一个线程得到第二个线程的通知&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    [lock unlock];</span><br><span class="line">    NSLog(@&quot;第一个线程使用完毕&quot;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;第二个线程</span><br><span class="line">dispatch_async(q, ^&#123;</span><br><span class="line">    [lock lock];</span><br><span class="line">    sleep(2);</span><br><span class="line">    finished &#x3D; YES;</span><br><span class="line">    NSLog(@&quot;我做了一些事情，告诉第一个线程&quot;);</span><br><span class="line">    [lock signal];</span><br><span class="line">    [lock unlock];</span><br><span class="line">    NSLog(@&quot;第二个线程使用完毕&quot;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+<li><h3 id="信号量-dispatch-semaphore-t"><a href="#信号量-dispatch-semaphore-t" class="headerlink" title="信号量 dispatch_semaphore_t"></a>信号量 dispatch_semaphore_t</h3><ul>
+<li>dispatch_semaphore_create<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct semaphore &#123;</span><br><span class="line">    int value;</span><br><span class="line">    List&lt;thread&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>dispatch_semaphore_wait()<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    S.value &#x3D; S.value - 1;</span><br><span class="line">    if S.value &lt; 0 then Block(S.List); &#x2F;&#x2F;阻塞时一个主动行为 </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>dispatch_semaphore_singal()<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    S.value &#x3D; S.value + 1;</span><br><span class="line">    if S.value &lt;&#x3D; 0 then wakeup(S.List);&#x2F;&#x2F;唤醒是一个被动行为</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><h3 id="atomic"><a href="#atomic" class="headerlink" title="atomic"></a>atomic</h3><ul>
+<li>关键字</li>
+<li>被修饰对象 是原子操作的（赋值有效）    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">self.array &#x3D; array1; &#x2F;&#x2F;有效   </span><br><span class="line">[self.array addObject: @1]; &#x2F;&#x2F;无效</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83%E5%9B%BE.png" alt="性能比较图"> </p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6493794657de">参考文章</a> </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zhazhadan.github.io/2021/08/22/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81/" data-id="cksnf92fd0000n5zi81nkgps7" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-线程探索三-NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/" class="article-date">
@@ -656,49 +744,6 @@ iOS默认有两种队列：
 
 
   
-    <article id="post-基于SDWebImage的多线程分析" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" class="article-date">
-  <time datetime="2020-08-05T03:18:59.000Z" itemprop="datePublished">2020-08-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/">基于SDWebImage的多线程分析</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong>1. 关于锁</strong>   </p>
-        
-          <p class="article-more-link">
-            <a href="/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhazhadan.github.io/2020/08/05/%E5%9F%BA%E4%BA%8ESDWebImage%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%88%86%E6%9E%90/" data-id="ckj15hfyr0008kuzicc9j3c4g" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SDWebImage/" rel="tag">SDWebImage</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E9%94%81/" rel="tag">线程锁</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -749,6 +794,10 @@ iOS默认有两种队列：
       <ul>
         
           <li>
+            <a href="/2021/08/22/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E5%9B%9B-%E9%94%81/">多线程探索四-锁</a>
+          </li>
+        
+          <li>
             <a href="/2021/08/22/%E7%BA%BF%E7%A8%8B%E6%8E%A2%E7%B4%A2%E4%B8%89-NSOperation/">线程探索三-NSOperation</a>
           </li>
         
@@ -762,10 +811,6 @@ iOS默认有两种队列：
         
           <li>
             <a href="/2021/08/08/iOS%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8/">iOS循环引用</a>
-          </li>
-        
-          <li>
-            <a href="/2021/08/08/%E6%8E%A2%E7%B4%A2block-block%E7%9A%84%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8-%E4%BA%8C/">探索block-block的循环引用(二)</a>
           </li>
         
       </ul>
